@@ -75,7 +75,7 @@ pub static __INIT_FNS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mutex::
 pub static __PREFIX__: LazyLock<Mutex<[String; 2]>> =
     LazyLock::new(|| Mutex::new(["".to_owned(), "-".to_owned()]));
 
-pub static __MOD_IN_NAME__: LazyLock<AtomicBool> = LazyLock::new(|| AtomicBool::new(true));
+pub static __MOD_IN_NAME__: AtomicBool = AtomicBool::new(true);
 
 fn debugging() -> bool {
     std::env::var("EMACS_MODULE_RS_DEBUG").unwrap_or_default() == "1"
