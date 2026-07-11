@@ -65,7 +65,7 @@ fn apply<'e>(lambda: Value<'e>, args: Value<'e>) -> Result<Value<'e>> {
 
 #[defun(mod_in_name = false)]
 fn read_file<'e>(env: &Env, path: String) -> Result<String> {
-    fs::read_to_string(path).or_signal(env, emrs_file_error)
+    fs::read_to_string(path).or_signal(env, &EMRS_FILE_ERROR)
 }
 
 #[defun(mod_in_name = false, name = "error:panic")]
@@ -85,16 +85,16 @@ fn parse_arg(env: &CallEnv) -> Result<String> {
 }
 
 rem::use_symbols! {
-    emrs_file_error => "emrs-file-error"
-    emacs_module_rs_test_error => "emacs-module-rs-test-error"
-    error_defined_without_parent => "error-defined-without-parent"
-    rust_error => "rust-error"
+    EMRS_FILE_ERROR => "emrs-file-error",
+    EMACS_MODULE_RS_TEST_ERROR => "emacs-module-rs-test-error",
+    ERROR_DEFINED_WITHOUT_PARENT => "error-defined-without-parent",
+    RUST_ERROR => "rust-error",
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.define_error(emrs_file_error, "File error", [])?;
-    env.define_error(emacs_module_rs_test_error, "Hello", [rust_error.bind(env)])?;
-    env.define_error(error_defined_without_parent, "Error", [])?;
+    env.define_error(&EMRS_FILE_ERROR, "File error", [])?;
+    env.define_error(&EMACS_MODULE_RS_TEST_ERROR, "Hello", [RUST_ERROR.try_bind(env)?])?;
+    env.define_error(&ERROR_DEFINED_WITHOUT_PARENT, "Error", [])?;
 
     rem::__export_functions! {
         env, format!("{}error:", *MODULE_PREFIX), {
@@ -104,7 +104,7 @@ pub fn init(env: &Env) -> Result<()> {
 
     #[defun(mod_in_name = false, name = "error:signal-custom")]
     fn signal_custom(env: &Env) -> Result<()> {
-        env.signal(emacs_module_rs_test_error, [])
+        env.signal(&EMACS_MODULE_RS_TEST_ERROR, [])
     }
 
     Ok(())

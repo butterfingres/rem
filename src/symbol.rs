@@ -1,6 +1,6 @@
 use crate::{
     Env, Result, Value,
-    global::{GlobalRef, OnceGlobalRef},
+    global::{GlobalRef, LazyGlobalRef, Symbol, OnceGlobalRef},
 };
 
 /// Defines static [`&OnceGlobalRef`] variables that point to corresponding Lisp symbols.
@@ -17,19 +17,18 @@ use crate::{
 /// [`use_functions!`]: crate::use_functions
 #[macro_export]
 macro_rules! use_symbols {
-    ($( $name:ident $( => $lisp_name:expr )? )*) => {
-        $crate::global_refs! {__emrs_init_global_refs_to_symbols__(init_to_symbol) =>
-            $( $name $( => $lisp_name )? )*
-        }
-    }
+    ($($ident:ident => $symbol:expr),* $(,)?) => {
+        $(pub static $ident: $crate::LazyGlobalRef<$crate::Symbol> = $crate::LazyGlobalRef::new($crate::Symbol::new($symbol));)*
+    };
 }
 
 use_symbols! {
-    nil t
-    error
-    rust_error
-    rust_panic
-    rust_wrong_type_user_ptr
+    NIL => "nil",
+    T => "t",
+    ERROR => "error",
+    RUST_ERROR => "rust-error",
+    RUST_PANIC => "rust-panic",
+    RUST_WRONG_TYPE_USER_PTR => "rust-wrong-type-user-ptr",
 }
 
 pub trait IntoLispSymbol<'e> {
@@ -54,6 +53,12 @@ impl<'e> IntoLispSymbol<'e> for &'e GlobalRef {
     #[inline(always)]
     fn into_lisp_symbol(self, env: &'e Env) -> Result<Value<'e>> {
         self.bind(env).into_lisp_symbol(env)
+    }
+}
+impl<'e> IntoLispSymbol<'e> for &'e LazyGlobalRef<Symbol<'_>> {
+    #[inline(always)]
+    fn into_lisp_symbol(self, env: &'e Env) -> Result<Value<'e>> {
+        self.try_bind(env)?.into_lisp_symbol(env)
     }
 }
 

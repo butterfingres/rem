@@ -59,19 +59,19 @@ impl<'e, T: IntoLisp<'e>> IntoLisp<'e> for Option<T> {
     fn into_lisp(self, env: &'e Env) -> Result<Value<'_>> {
         match self {
             Some(t) => t.into_lisp(env),
-            None => symbol::nil.into_lisp(env),
+            None => symbol::NIL.into_lisp(env),
         }
     }
 }
 
 impl IntoLisp<'_> for () {
     fn into_lisp(self, env: &Env) -> Result<Value<'_>> {
-        symbol::nil.into_lisp(env)
+        symbol::NIL.into_lisp(env)
     }
 }
 
 impl IntoLisp<'_> for bool {
     fn into_lisp(self, env: &Env) -> Result<Value<'_>> {
-        if self { symbol::t.into_lisp(env) } else { symbol::nil.into_lisp(env) }
+        if self { symbol::T.into_lisp(env) } else { symbol::NIL.into_lisp(env) }
     }
 }

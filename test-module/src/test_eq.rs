@@ -4,7 +4,9 @@ use rem::{defun, use_symbols, Env, GlobalRef, IntoLisp, Result, Value};
 
 // Symbols representing the three directions a node can appear in.
 use_symbols! {
-    left right center
+    LEFT => "left",
+    RIGHT => "right",
+    CENTER => "center",
 }
 
 /// Return t if A and B are `eq` (using Rust's `==` operator on `Value`).
@@ -36,11 +38,11 @@ fn new_string(env: &Env, s: String) -> Result<Value<'_>> {
 /// avoiding repeated `intern` calls on the hot path.
 #[defun(mod_in_name = false, name = "eq:classify-position")]
 fn classify_position(position: Value<'_>) -> Result<String> {
-    if position == *left {
+    if LEFT == position {
         Ok("left".to_owned())
-    } else if *right == position {
+    } else if RIGHT == position {
         Ok("right".to_owned())
-    } else if *center == position {
+    } else if CENTER == position {
         Ok("center".to_owned())
     } else {
         Ok("unknown".to_owned())

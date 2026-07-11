@@ -7,7 +7,8 @@ use thiserror::Error;
 use emacs_module::*;
 
 use crate::{
-    Env, Value, IntoLisp, GlobalRef,
+    Env, Value, IntoLisp,
+    global::{LazyGlobalRef, Symbol},
     symbol::{self, IntoLispSymbol},
     call::IntoLispArgs,
 };
@@ -145,7 +146,7 @@ impl Env {
                     unsafe { self.handle_known(err) }
                 }
                 _ => self
-                    .signal_internal(symbol::rust_error, &format!("{}", error))
+                    .signal_internal(&symbol::RUST_ERROR, &format!("{}", error))
                     .unwrap_or_else(|_| panic!("Failed to signal {}", error)),
             },
         }
@@ -177,7 +178,7 @@ impl Env {
                 if let Err(error) = m {
                     m = Ok(format!("{:#?}", error));
                 }
-                self.signal_internal(symbol::rust_panic, &m.expect("Logic error"))
+                self.signal_internal(&symbol::RUST_PANIC, &m.expect("Logic error"))
                     .expect("Fail to signal panic")
             }
         }
@@ -186,12 +187,12 @@ impl Env {
     pub(crate) fn define_core_errors(&self) -> Result<()> {
         // FIX: Make panics louder than errors, by somehow make sure that 'rust-panic is
         // not a sub-type of 'error.
-        self.define_error(symbol::rust_panic, "Rust panic", (symbol::error,))?;
-        self.define_error(symbol::rust_error, "Rust error", (symbol::error,))?;
+        self.define_error(&symbol::RUST_PANIC, "Rust panic", (&symbol::ERROR,))?;
+        self.define_error(&symbol::RUST_ERROR, "Rust error", (&symbol::ERROR,))?;
         self.define_error(
-            symbol::rust_wrong_type_user_ptr,
+            &symbol::RUST_WRONG_TYPE_USER_PTR,
             "Wrong type user-ptr",
-            (symbol::rust_error, self.intern("wrong-type-argument")?),
+            (&symbol::RUST_ERROR, self.intern("wrong-type-argument")?),
         )?;
         Ok(())
     }
@@ -207,15 +208,19 @@ impl Env {
                 unsafe { self.non_local_exit_throw(tag.raw, value.raw) }
             }
             ErrorKind::WrongTypeUserPtr { .. } => self
-                .signal_internal(symbol::rust_wrong_type_user_ptr, &format!("{}", err))
+                .signal_internal(&symbol::RUST_WRONG_TYPE_USER_PTR, &format!("{}", err))
                 .unwrap_or_else(|_| panic!("Failed to signal {}", err)),
         }
     }
 
-    fn signal_internal(&self, symbol: &GlobalRef, message: &str) -> Result<emacs_value> {
+    fn signal_internal(
+        &self,
+        symbol: &LazyGlobalRef<Symbol>,
+        message: &str,
+    ) -> Result<emacs_value> {
         let message = message.into_lisp(self)?;
         let data = self.list([message])?;
-        unsafe { Ok(self.non_local_exit_signal(symbol.bind(self).raw, data.raw)) }
+        unsafe { Ok(self.non_local_exit_signal(symbol.try_bind(self)?.raw, data.raw)) }
     }
 
     /// Defines a new Lisp error signal. This is the equivalent of the Lisp function's [`define-error`].

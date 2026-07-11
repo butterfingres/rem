@@ -254,9 +254,14 @@ where
 
 #[derive(Clone, Copy, Debug)]
 pub struct Symbol<'a>(&'a str);
+impl<'a> Symbol<'a> {
+    pub const fn new(val: &'a str) -> Self {
+        Self(val)
+    }
+}
 impl LazyGlobalRefValue for Symbol<'_> {
     fn initialize<'a>(self, env: &Env, place: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef> {
-        place.init(env, move |env| env.intern(&self.0))
+        place.init(env, move |env| env.intern(self.0))
     }
 }
 
@@ -264,7 +269,7 @@ impl LazyGlobalRefValue for Symbol<'_> {
 pub struct Fn<'a>(&'a str);
 impl LazyGlobalRefValue for Fn<'_> {
     fn initialize<'a>(self, env: &Env, place: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef> {
-        place.init(env, move |env| env.call("indirect-function", (env.intern(&self.0)?,)))
+        place.init(env, move |env| env.call("indirect-function", (env.intern(self.0)?,)))
     }
 }
 
@@ -279,6 +284,10 @@ impl<T> LazyGlobalRef<T>
 where
     T: LazyGlobalRefValue,
 {
+    pub const fn new(val: T) -> Self {
+        Self { val, inner: OnceLock::new() }
+    }
+
     /// Initializes this global reference with the given function.
     fn init<'a, 'e, F: FnOnce(&'e Env) -> Result<Value>>(
         &'a self,
@@ -290,8 +299,25 @@ where
         Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
     }
 
-    pub fn bind<'e, 'g: 'e>(&'g self, env: &'e Env) -> Result<Value<'e>> {
+    pub fn try_bind<'e, 'g: 'e>(&'g self, env: &'e Env) -> Result<Value<'e>> {
         Ok(if let Some(val) = self.inner.get() { val } else { self.val.initialize(env, self)? }
             .bind(env))
+    }
+}
+impl<'e, T> IntoLisp<'e> for &'e LazyGlobalRef<T>
+where
+    T: LazyGlobalRefValue,
+{
+    fn into_lisp(self, env: &'e Env) -> Result<Value<'e>> {
+        self.try_bind(env)
+    }
+}
+impl<'e, T> PartialEq<Value<'e>> for LazyGlobalRef<T>
+where
+    T: LazyGlobalRefValue,
+{
+    #[inline]
+    fn eq(&self, r: &Value<'e>) -> bool {
+        self.try_bind(r.env).map(|l| l == *r).unwrap_or_default()
     }
 }
