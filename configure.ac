@@ -1,5 +1,7 @@
 AC_INIT
 
+AC_CANONICAL_TARGET
+
 AC_ARG_VAR([RUSTC], [Rust compiler command])
 AC_ARG_VAR([RUSTFLAGS], [Rust compiler options])
 AC_ARG_VAR([CARGO], [Cargo command])
