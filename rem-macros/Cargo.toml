@@ -11,6 +11,10 @@ license = "BSD-3-Clause"
 readme = "README.md"
 keywords = ["emacs", "emacs-module"]
 
+[features]
+default = ["mod-in-name"]
+mod-in-name = []
+
 [lib]
 proc-macro = true
 

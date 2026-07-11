@@ -217,14 +217,14 @@ impl LispFunc {
         doc.push_str(&lisp_signature(&self.args));
         let path = match &self.opts.mod_in_name {
             None => {
-                let crate_mod_in_name = util::mod_in_name_path();
-                quote!({
-                    if #crate_mod_in_name.load(::std::sync::atomic::Ordering::Relaxed) {
-                        module_path!()
-                    } else {
-                        ""
+                cfg_select! {
+                    feature = "mod-in-name" => {
+                        quote! {
+                            module_path!()
+                        }
                     }
-                })
+                    _ => quote!{ "" }
+                }
             }
             Some(true) => quote!(module_path!()),
             Some(false) => quote!(""),

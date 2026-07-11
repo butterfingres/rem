@@ -34,7 +34,8 @@ rem-macros = { path = "rem-macros", version = "0.17.0" }
 libc = "0.2"
 
 [features]
-default = []
+default = ["mod-in-name"]
+mod-in-name = ["rem-macros/mod-in-name"]
 utf-8-validation = []
 lossy-integer-conversion = []
 nonzero-integer-conversion = []

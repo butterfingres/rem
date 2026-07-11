@@ -24,9 +24,6 @@ struct ModuleOpts {
     /// Separator following the feature name to form the prefix in functions' full Lisp name.
     #[darling(default = "default::separator")]
     separator: String,
-    /// Whether module path should be used to construct functions' full Lisp name.
-    #[darling(default = "default::mod_in_name")]
-    mod_in_name: bool,
     /// Alternative prefix (instead of the feature name) to use in functions' full Lisp name.
     #[darling(default)]
     defun_prefix: Option<String>,
@@ -41,9 +38,6 @@ pub struct Module {
 mod default {
     pub fn separator() -> String {
         "-".into()
-    }
-    pub fn mod_in_name() -> bool {
-        true
     }
 }
 
@@ -112,8 +106,6 @@ impl Module {
         let hook = &self.def.sig.ident;
         let init_fns = util::init_fns_path();
         let prefix = util::prefix_path();
-        let mod_in_name = util::mod_in_name_path();
-        let crate_mod_in_name = &self.opts.mod_in_name;
         let feature = match &self.opts.name {
             Name::Crate => quote!(::rem::init::lisp_pkg(module_path!())),
             Name::Str(name) => quote!(#name.to_owned()),
@@ -133,9 +125,6 @@ impl Module {
                 *prefix = [#defun_prefix, #separator.to_owned()];
             }
         };
-        let configure_mod_in_name = quote! {
-            #mod_in_name.store(#crate_mod_in_name, ::std::sync::atomic::Ordering::Relaxed);
-        };
         let export_lisp_funcs = quote! {
             {
                 let funcs = #init_fns.try_lock()
@@ -150,7 +139,6 @@ impl Module {
             fn #init(#env: &::rem::Env) -> ::rem::Result<::rem::Value<'_>> {
                 let feature = #feature;
                 #set_prefix
-                #configure_mod_in_name
                 #export_lisp_funcs
                 #hook(#env)?;
                 #env.provide(&feature)

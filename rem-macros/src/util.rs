@@ -43,7 +43,3 @@ pub fn init_fns_path() -> TokenStream2 {
 pub fn prefix_path() -> TokenStream2 {
     quote!(::rem::init::__PREFIX__)
 }
-
-pub fn mod_in_name_path() -> TokenStream2 {
-    quote!(::rem::init::__MOD_IN_NAME__)
-}
