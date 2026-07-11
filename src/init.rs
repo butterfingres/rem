@@ -37,17 +37,6 @@ type InitFn = fn(&Env) -> Result<()>;
 // TODO: How about defining these in user crate, and requiring #[module] to be at the crate's root?
 // TODO: We probably don't need the mutexes.
 
-/// Functions that will be called by [`emacs_module_init`] to initialize global references to
-/// frequently used Lisp values.
-///
-/// They are called before loading module metadata, e.g. module name, function prefix.
-///
-/// This list is populated when the OS loads the dynamic library, before Emacs calls
-/// [`emacs_module_init`].
-///
-/// [`emacs_module_init`]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html
-pub static __GLOBAL_REFS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mutex::new(vec![]));
-
 /// Functions that will be called by [`emacs_module_init`] to define the module functions.
 ///
 /// They are called after loading module metadata, e.g. module name, function prefix.
@@ -86,13 +75,6 @@ where
     let env = panic::AssertUnwindSafe(env);
     let result = panic::catch_unwind(|| {
         match (|| {
-            for init_global_ref in __GLOBAL_REFS__
-                .try_lock()
-                .expect("Failed to acquire a read lock on the list of initializers for global-refs")
-                .iter()
-            {
-                init_global_ref(&env)?;
-            }
             env.define_core_errors()?;
             check_gc_bug_31238(&env)?;
             init(&env)

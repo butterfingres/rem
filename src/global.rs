@@ -122,45 +122,6 @@ impl<'e> PartialEq<GlobalRef> for Value<'e> {
     }
 }
 
-/// Declares global references. These will be initialized when the module is loaded.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! global_refs {
-    ($($name:ident)*) => {
-        $(
-            #[allow(non_upper_case_globals)]
-            pub static $name: &'static $crate::OnceGlobalRef = {
-                static X: $crate::OnceGlobalRef = $crate::OnceGlobalRef::new();
-                &X
-            };
-        )*
-    };
-    ($registrator_name:ident ($init_method:ident) =>
-        $(
-            $name:ident $( => $lisp_name:expr )?
-        )*
-    ) => {
-        $crate::global_refs! {
-            $($name)*
-        }
-
-        #[$crate::deps::ctor::ctor(crate_path = $crate::deps::ctor)]
-        fn $registrator_name() {
-            $crate::init::__GLOBAL_REFS__.try_lock()
-                .expect("Failed to acquire a write lock on the list of initializers for global refs")
-                .push(|env| {
-                    $(
-                        #[allow(unused_variables)]
-                        let name = $crate::deps::rem_macros::lisp_name!($name);
-                        $( let name = $lisp_name; )?
-                        $crate::OnceGlobalRef::$init_method(&$name, env, name)?;
-                    )*
-                    Ok(())
-                });
-        }
-    };
-}
-
 /// A [`GlobalRef`] that can be initialized once. This is useful for long-lived values that should
 /// be initialized when the dynamic module is loaded. Typical use cases include "importing"
 /// frequently-used symbols via [`use_symbols!`], or frequently-called functions via
