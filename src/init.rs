@@ -72,7 +72,7 @@ pub static __INIT_FNS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mutex::
 /// attribute macro #[[`defun`]].
 ///
 /// [`defun`]: attr.defun.html
-pub static __PREFIX__: LazyLock<Mutex<[&'static str; 2]>> = LazyLock::new(|| Mutex::new([""; 2]));
+pub static __PREFIX__: LazyLock<Mutex<&'static str>> = LazyLock::new(|| Mutex::new(""));
 
 fn debugging() -> bool {
     std::env::var("EMACS_MODULE_RS_DEBUG").unwrap_or_default() == "1"
@@ -147,7 +147,7 @@ fn lisp_name(s: &str) -> String {
 pub fn lisp_path(mod_path: &str) -> String {
     let split = mod_path.split("::");
     let mut path =
-        __PREFIX__.try_lock().expect("Failed to acquire read lock of module prefix").join("");
+        __PREFIX__.try_lock().expect("Failed to acquire read lock of module prefix").to_owned();
     for segment in split.skip(1) {
         path.push_str(segment);
         path.push('-');

@@ -115,14 +115,14 @@ impl Module {
             }
         };
         let defun_prefix = match &self.opts.defun_prefix {
-            None => quote!(feature),
+            None => quote!(FEATURE),
             Some(defun_prefix) => quote!(#defun_prefix),
         };
         let set_prefix = quote! {
             {
                 let mut prefix = #prefix.try_lock()
                     .expect("Failed to acquire write lock on module prefix");
-                *prefix = [#defun_prefix, #separator];
+                *prefix = ::rem::const_concat!(#defun_prefix, #separator);
             }
         };
         let export_lisp_funcs = quote! {
@@ -137,11 +137,11 @@ impl Module {
         quote! {
             #[allow(non_snake_case)]
             fn #init(#env: &::rem::Env) -> ::rem::Result<::rem::Value<'_>> {
-                let feature = #feature;
+                const FEATURE: &str = #feature;
                 #set_prefix
                 #export_lisp_funcs
                 #hook(#env)?;
-                #env.provide(&feature)
+                #env.provide(&FEATURE)
             }
         }
     }
