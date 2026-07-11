@@ -72,8 +72,7 @@ pub static __INIT_FNS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mutex::
 /// attribute macro #[[`defun`]].
 ///
 /// [`defun`]: attr.defun.html
-pub static __PREFIX__: LazyLock<Mutex<[String; 2]>> =
-    LazyLock::new(|| Mutex::new(["".to_owned(), "-".to_owned()]));
+pub static __PREFIX__: LazyLock<Mutex<[&'static str; 2]>> = LazyLock::new(|| Mutex::new([""; 2]));
 
 fn debugging() -> bool {
     std::env::var("EMACS_MODULE_RS_DEBUG").unwrap_or_default() == "1"
@@ -145,9 +144,32 @@ fn lisp_name(s: &str) -> String {
     s.replace("_", "-")
 }
 
-pub fn lisp_pkg(mod_path: &str) -> String {
-    let crate_name = mod_path.split("::").next().expect("mod_path is empty!");
-    lisp_name(crate_name)
+#[doc(hidden)]
+#[macro_export]
+macro_rules! lisp_pkg {
+    () => {{
+        const PATH: &::std::primitive::str = module_path!();
+        const LEN: ::std::primitive::usize = {
+            let mut i = 0;
+            while i < PATH.len() {
+                if PATH[i] == ':' {
+                    break;
+                }
+                i += 1;
+            }
+            i;
+        };
+        const BUF: [::std::primitive::u8; LEN] = {
+            let mut buf = [0; LEN];
+            let mut i = 0;
+            while i < LEN {
+                buf[i] = PATH.as_bytes()[i];
+                i += 1;
+            }
+            buf
+        };
+        const { ::std::str::from_utf8_unchecked(&BUF) }
+    }};
 }
 
 pub fn lisp_path(mod_path: &str) -> String {

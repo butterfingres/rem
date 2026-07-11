@@ -107,22 +107,22 @@ impl Module {
         let init_fns = util::init_fns_path();
         let prefix = util::prefix_path();
         let feature = match &self.opts.name {
-            Name::Crate => quote!(::rem::init::lisp_pkg(module_path!())),
-            Name::Str(name) => quote!(#name.to_owned()),
+            Name::Crate => quote!(::rem::lisp_pkg!()),
+            Name::Str(name) => quote!(#name),
             Name::Fn => {
                 let name = util::lisp_name(hook);
-                quote!(#name.to_owned())
+                quote!(#name)
             }
         };
         let defun_prefix = match &self.opts.defun_prefix {
-            None => quote!(feature.clone()),
-            Some(defun_prefix) => quote!(#defun_prefix.to_owned()),
+            None => quote!(feature),
+            Some(defun_prefix) => quote!(#defun_prefix),
         };
         let set_prefix = quote! {
             {
                 let mut prefix = #prefix.try_lock()
                     .expect("Failed to acquire write lock on module prefix");
-                *prefix = [#defun_prefix, #separator.to_owned()];
+                *prefix = [#defun_prefix, #separator];
             }
         };
         let export_lisp_funcs = quote! {
