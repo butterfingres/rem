@@ -120,7 +120,7 @@ impl Env {
     pub fn open_channel<'e>(
         &'e self,
         pipe_process: Value<'e>,
-    ) -> Result<impl Write + Debug + Send + Sync + use<>> {
+    ) -> Result<impl std::io::Write + Debug + Send + Sync + use<>> {
         let raw_fd = unsafe_raw_call!(self, open_channel, pipe_process.raw)?;
 
         #[cfg(target_os = "windows")]
@@ -133,14 +133,14 @@ impl Env {
             // pre-installed UCRT gcc.
             let handle = unsafe { libc::get_osfhandle(raw_fd) as RawHandle };
             // SAFETY: Emacs dup'ed the open file descriptor.
-            Ok(unsafe { PipeWriter::from_raw_handle(handle) })
+            Ok(unsafe { std::io::PipeWriter::from_raw_handle(handle) })
         }
 
         #[cfg(not(target_os = "windows"))]
         {
             use std::os::unix::io::FromRawFd;
             // SAFETY: Emacs dup'ed the open file descriptor.
-            Ok(unsafe { PipeWriter::from_raw_fd(raw_fd) })
+            Ok(unsafe { std::io::PipeWriter::from_raw_fd(raw_fd) })
         }
     }
 }
