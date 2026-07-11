@@ -86,3 +86,31 @@ macro_rules! emacs_plugin_is_GPL_compatible {
         $crate::plugin_is_GPL_compatible!($($inner)*);
     };
 }
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! lisp_pkg {
+    () => {{
+        const PATH: &::std::primitive::str = module_path!();
+        const LEN: ::std::primitive::usize = {
+            let mut i = 0;
+            while i < PATH.len() {
+                if PATH[i] == ':' {
+                    break;
+                }
+                i += 1;
+            }
+            i;
+        };
+        const BUF: [::std::primitive::u8; LEN] = {
+            let mut buf = [0; LEN];
+            let mut i = 0;
+            while i < LEN {
+                buf[i] = PATH.as_bytes()[i];
+                i += 1;
+            }
+            buf
+        };
+        const { ::std::str::from_utf8_unchecked(&BUF) }
+    }};
+}
