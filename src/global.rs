@@ -35,7 +35,7 @@ use super::*;
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct GlobalRef {
-    raw: emacs_value
+    raw: emacs_value,
 }
 
 impl GlobalRef {
@@ -96,7 +96,6 @@ impl<'e> IntoLisp<'e> for &'e GlobalRef {
     }
 }
 
-
 impl<'e> Value<'e> {
     /// Creates a new [`GlobalRef`] for this value.
     ///
@@ -150,7 +149,7 @@ macro_rules! global_refs {
                 .push(::std::boxed::Box::new(|env| {
                     $(
                         #[allow(unused_variables)]
-                        let name = $crate::deps::emacs_macros::lisp_name!($name);
+                        let name = $crate::deps::rem_macros::lisp_name!($name);
                         $( let name = $lisp_name; )?
                         $crate::OnceGlobalRef::$init_method(&$name, env, name)?;
                     )*
@@ -170,7 +169,7 @@ macro_rules! global_refs {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct OnceGlobalRef {
-    inner: OnceLock<GlobalRef>
+    inner: OnceLock<GlobalRef>,
 }
 
 impl OnceGlobalRef {

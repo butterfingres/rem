@@ -2,10 +2,7 @@ use std::fmt::Display;
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::{quote, ToTokens, TokenStreamExt};
-use syn::{
-    ext::IdentExt,
-    Ident, ItemFn,
-};
+use syn::{ext::IdentExt, Ident, ItemFn};
 
 // TODO: Add more extensively checks and transformations to make this more "idiomatic".
 pub fn lisp_name(id: &Ident) -> String {
@@ -41,13 +38,13 @@ pub fn doc(fn_item: &ItemFn) -> String {
 }
 
 pub fn init_fns_path() -> TokenStream2 {
-    quote!(::emacs::init::__INIT_FNS__)
+    quote!(::rem::init::__INIT_FNS__)
 }
 
 pub fn prefix_path() -> TokenStream2 {
-    quote!(::emacs::init::__PREFIX__)
+    quote!(::rem::init::__PREFIX__)
 }
 
 pub fn mod_in_name_path() -> TokenStream2 {
-    quote!(::emacs::init::__MOD_IN_NAME__)
+    quote!(::rem::init::__MOD_IN_NAME__)
 }

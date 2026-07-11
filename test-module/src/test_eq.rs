@@ -1,6 +1,6 @@
 //! Testing `PartialEq` for `Value` and `GlobalRef`.
 
-use emacs::{defun, use_symbols, Env, GlobalRef, IntoLisp, Result, Value};
+use rem::{defun, use_symbols, Env, GlobalRef, IntoLisp, Result, Value};
 
 // Symbols representing the three directions a node can appear in.
 use_symbols! {

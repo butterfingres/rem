@@ -2,7 +2,7 @@
 
 use std::{env, panic, sync::LazyLock};
 
-use emacs::{defun, CallEnv, Env, IntoLisp, Result, Value};
+use rem::{defun, CallEnv, Env, IntoLisp, Result, Value};
 
 #[macro_use]
 mod macros;
@@ -18,13 +18,13 @@ mod ref_cell;
 mod vector;
 mod hash_map;
 
-emacs::plugin_is_GPL_compatible!();
+rem::plugin_is_GPL_compatible!();
 
 const MODULE: &str = "t";
 static MODULE_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{}/", MODULE));
 
 // TODO: Add more tests for different combinations of module options.
-#[emacs::module(name(fn), separator = "/")]
+#[rem::module(name(fn), separator = "/")]
 fn t(env: &Env) -> Result<()> {
     if let Err(env::VarError::NotPresent) = env::var("RUST_BACKTRACE") {
         // Silence panic logging.
@@ -63,7 +63,7 @@ fn to_uppercase(s: String) -> Result<String> {
 
 #[allow(dead_code)]
 struct StringWrapper {
-    pub s: String
+    pub s: String,
 }
 
 custom_types! {
@@ -81,7 +81,7 @@ fn make_dec(env: &Env) -> Result<Value<'_>> {
         let i: i64 = env.parse_arg(0)?;
         (i - 1).into_lisp(env)
     }
-    emacs::lambda!(env, dec, 1..1, "decrement")
+    rem::lambda!(env, dec, 1..1, "decrement")
 }
 
 #[defun]
@@ -97,8 +97,5 @@ fn make_inc_and_plus(env: &Env) -> Result<Value<'_>> {
         (x + y).into_lisp(env)
     }
 
-    env.call("cons", &[
-        emacs::lambda!(env, inc, 1..1, "increment")?,
-        emacs::lambda!(env, plus, 2..2)?,
-    ])
+    env.call("cons", &[rem::lambda!(env, inc, 1..1, "increment")?, rem::lambda!(env, plus, 2..2)?])
 }

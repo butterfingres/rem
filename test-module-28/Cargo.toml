@@ -8,7 +8,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-emacs = { path = "..", features = ["emacs-28"] }
+rem = { path = "..", features = ["emacs-28"] }
 
 [features]
-bindgen = ["emacs/bindgen"]
+bindgen = ["rem/bindgen"]

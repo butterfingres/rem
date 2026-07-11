@@ -17,13 +17,13 @@ macro_rules! make_prefix {
 
 macro_rules! custom_types {
     ($($name:ident;)*) => {$(
-        impl ::emacs::Transfer for $name {}
+        impl ::rem::Transfer for $name {}
     )*};
 }
 
 macro_rules! call {
     ($env:ident, $name:expr $(, $arg:expr)*) => {{
-        use emacs::IntoLisp;
+        use rem::IntoLisp;
         let args = &[$($arg.into_lisp($env)?,)*];
         $env.call($name, args)
     }}

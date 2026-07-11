@@ -1,5 +1,5 @@
-use emacs::{defun, CallEnv, Env, IntoLisp, Result, Value};
-use emacs::func::Manage;
+use rem::{defun, CallEnv, Env, IntoLisp, Result, Value};
+use rem::func::Manage;
 
 use super::MODULE_PREFIX;
 
@@ -9,16 +9,10 @@ fn using_fset(env: &Env) -> Result<()> {
     fn sum_and_diff(env: &CallEnv) -> Result<Value<'_>> {
         let x: i64 = env.parse_arg(0)?;
         let y: i64 = env.parse_arg(1)?;
-        env.list(&[
-            (x + y).into_lisp(env)?,
-            (x - y).into_lisp(env)?
-        ])
+        env.list(&[(x + y).into_lisp(env)?, (x - y).into_lisp(env)?])
     }
 
-    env.fset(
-        prefix!("sum-and-diff"),
-        emacs::lambda!(env, sum_and_diff, 2..2)?,
-    )?;
+    env.fset(prefix!("sum-and-diff"), rem::lambda!(env, sum_and_diff, 2..2)?)?;
 
     Ok(())
 }
@@ -39,7 +33,7 @@ pub fn init(env: &Env) -> Result<()> {
         Ok(x + y)
     }
 
-    emacs::__export_functions! {
+    rem::__export_functions! {
         env, *MODULE_PREFIX, {
             "sum" => (sum, 2..2),
         }

@@ -105,7 +105,7 @@ impl Module {
     pub fn gen_registrator() -> TokenStream2 {
         let init = Self::init_ident();
         quote! {
-            ::emacs::__module_init!(#init);
+            ::rem::__module_init!(#init);
         }
     }
 
@@ -119,7 +119,7 @@ impl Module {
         let mod_in_name = util::mod_in_name_path();
         let crate_mod_in_name = &self.opts.mod_in_name;
         let feature = match &self.opts.name {
-            Name::Crate => quote!(::emacs::init::lisp_pkg(module_path!())),
+            Name::Crate => quote!(::rem::init::lisp_pkg(module_path!())),
             Name::Str(name) => quote!(#name.to_owned()),
             Name::Fn => {
                 let name = util::lisp_name(hook);
@@ -151,7 +151,7 @@ impl Module {
         };
         quote! {
             #[allow(non_snake_case)]
-            fn #init(#env: &::emacs::Env) -> ::emacs::Result<::emacs::Value<'_>> {
+            fn #init(#env: &::rem::Env) -> ::rem::Result<::rem::Value<'_>> {
                 let feature = #feature;
                 #set_prefix
                 #configure_mod_in_name

@@ -1,6 +1,6 @@
 //! Testing RefCell embedded in user-ptr.
 
-use emacs::{defun, Result, Value};
+use rem::{defun, Result, Value};
 use std::cell::RefCell;
 
 // TODO: Add tests for Mutex and RwLock, and more tests for RefCell.

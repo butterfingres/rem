@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use emacs::{defun, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 
 /// Open a channel to PROCESS, write DATA to it, then close.
 #[defun]

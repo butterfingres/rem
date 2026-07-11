@@ -1,5 +1,5 @@
 [package]
-name = "emacs"
+name = "rem"
 version = "0.21.0"
 edition = "2024"
 description = "Rust library for creating Emacs's dynamic modules"
@@ -19,7 +19,6 @@ include = [
     ".rustfmt.toml",
     "CHANGELOG.md",
     "README.md",
-    "src/**/*"
 ]
 rust-version = "1.87"
 resolver = "3"
@@ -28,8 +27,8 @@ resolver = "3"
 thiserror = "2.0"
 anyhow = "1.0"
 ctor = "0.6"
-emacs_module = { path = "emacs-module", version = "0.21.0" }
-emacs-macros = { path = "emacs-macros", version = "0.17.0" }
+emacs_module = { version = "0.21.0" }
+rem-macros = { path = "rem-macros", version = "0.17.0" }
 
 [target.'cfg(windows)'.dependencies]
 libc = "0.2"

@@ -1,6 +1,6 @@
 //! Testing a custom vector (user-ptr).
 
-use emacs::{defun, Env, IntoLisp, Result, Value};
+use rem::{defun, Env, IntoLisp, Result, Value};
 
 struct Vector {
     pub x: i64,

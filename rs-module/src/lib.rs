@@ -3,14 +3,15 @@ use std::{
     sync::{LazyLock, Mutex},
 };
 
-use emacs::{defun, Env, Value, Result};
-use emacs::raw::emacs_env;
+use rem::{defun, Env, Value, Result};
+use rem::raw::emacs_env;
 
 use libloading::{Library, Symbol};
 
-emacs::plugin_is_GPL_compatible!();
+rem::plugin_is_GPL_compatible!();
 
-static LIBRARIES: LazyLock<Mutex<HashMap<String, Library>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static LIBRARIES: LazyLock<Mutex<HashMap<String, Library>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 const INIT_FROM_ENV: &str = "emacs_rs_module_init";
 
@@ -21,7 +22,7 @@ macro_rules! message {
 }
 
 // This module should be loaded by Emacs's built-in `module-load`, so it cannot be reloaded.
-#[emacs::module(name = "rs-module", separator = "/")]
+#[rem::module(name = "rs-module", separator = "/")]
 fn init(env: &Env) -> Result<Value<'_>> {
     message!(env, "[rs-module]: defined functions...")
 }
@@ -31,8 +32,7 @@ fn init(env: &Env) -> Result<Value<'_>> {
 /// `module-load`. (Re)loading is achieved by calling `(rs-module/load "/path/to/module")`.
 #[defun]
 fn load(env: &Env, path: String) -> Result<Value<'_>> {
-    let mut libraries = LIBRARIES.lock()
-        .expect("Failed to acquire lock for module map");
+    let mut libraries = LIBRARIES.lock().expect("Failed to acquire lock for module map");
     // TODO: How about tracking by feature name?
     match libraries.remove(&path) {
         Some(l) => message!(env, "[{}]: unloaded {:?}...", path, l)?,

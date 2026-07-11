@@ -2,9 +2,9 @@
 
 use std::fs;
 
-use emacs::{defun, CallEnv, Env, Result, Value};
-use emacs::ErrorKind::{self, Signal, Throw};
-use emacs::ResultExt;
+use rem::{defun, CallEnv, Env, Result, Value};
+use rem::ErrorKind::{self, Signal, Throw};
+use rem::ResultExt;
 
 use super::MODULE_PREFIX;
 
@@ -15,11 +15,7 @@ fn lisp_divide(x: Value<'_>, y: Value<'_>) -> Result<i64> {
     }
 
     fn foo<'e>(env: &'e Env, x: Value<'_>, y: Value<'_>) -> Result<Value<'e>> {
-        inner(
-            env,
-            x.into_rust()?,
-            y.into_rust()?,
-        )
+        inner(env, x.into_rust()?, y.into_rust()?)
     }
 
     foo(x.env, x, y)?.into_rust()
@@ -88,14 +84,14 @@ fn parse_arg(env: &CallEnv) -> Result<String> {
     Ok(s)
 }
 
-emacs::define_errors! {
+rem::define_errors! {
     emrs_file_error "File error"
     emacs_module_rs_test_error "Hello" (rust_error)
     error_defined_without_parent "Error"
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    emacs::__export_functions! {
+    rem::__export_functions! {
         env, format!("{}error:", *MODULE_PREFIX), {
             "parse-arg"   => (parse_arg   , 2..5),
         }

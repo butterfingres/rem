@@ -9,10 +9,10 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-emacs = { path = ".." }
+rem = { path = ".." }
 
 [dev-dependencies]
 emacs-rs-module = { path = "../rs-module" }
 
 [features]
-bindgen = ["emacs/bindgen"]
+bindgen = ["rem/bindgen"]

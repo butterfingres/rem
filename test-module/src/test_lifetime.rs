@@ -1,7 +1,7 @@
 //! Testing soundness of GC interactions.
 
-use emacs::{defun, Env, IntoLisp, Result, Value};
-use emacs::ErrorKind::{self, Signal};
+use rem::{defun, Env, IntoLisp, Result, Value};
+use rem::ErrorKind::{self, Signal};
 
 use super::MODULE_PREFIX;
 
@@ -19,8 +19,9 @@ fn create_collect_use<'e, CF, UF>(
     creating: CF,
     using: UF,
 ) -> Result<Value<'_>>
-    where CF: Fn() -> Result<Value<'e>>,
-          UF: Fn(&'e Env, Value<'e>) -> Result<Value<'e>>,
+where
+    CF: Fn() -> Result<Value<'e>>,
+    UF: Fn(&'e Env, Value<'e>) -> Result<Value<'e>>,
 {
     // - It's interesting that it wouldn't crash if the loop is unrolled.
     // - Even more interesting is it'd crash when manual malloc+free is used in raw C
@@ -52,25 +53,19 @@ fn create_collect_use<'e, CF, UF>(
 // - Linux: Segmentation fault
 #[defun(mod_in_name = false)]
 fn gc_after_new_string(env: &Env) -> Result<Value<'_>> {
-    create_collect_use(env, 2, || {
-        "0".into_lisp(env)
-    }, print)
+    create_collect_use(env, 2, || "0".into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
 #[defun(mod_in_name = false)]
 fn gc_after_new_int(env: &Env) -> Result<Value<'_>> {
-    create_collect_use(env, 2, || {
-        5.into_lisp(env)
-    }, print)
+    create_collect_use(env, 2, || 5.into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
 #[defun(mod_in_name = false)]
 fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
-    create_collect_use(env, 2, || {
-        5.8.into_lisp(env)
-    }, print)
+    create_collect_use(env, 2, || 5.8.into_lisp(env), print)
 }
 
 // Before fixing:
@@ -79,11 +74,16 @@ fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
 #[defun(mod_in_name = false)]
 fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
     // Wouldn't fail if count is 1 or 2.
-    create_collect_use(env, 3, || {
-        let x = env.intern("xyz")?;
-        env.call("unintern", [x])?;
-        Ok(x)
-    }, print)
+    create_collect_use(
+        env,
+        3,
+        || {
+            let x = env.intern("xyz")?;
+            env.call("unintern", [x])?;
+            Ok(x)
+        },
+        print,
+    )
 }
 
 // Before fixing:
@@ -91,19 +91,26 @@ fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
 // - Linux: wrong-type-argument (maybe the runtime is a bit different in Linux?)
 #[defun(mod_in_name = false)]
 fn gc_after_retrieving(env: &Env) -> Result<Value<'_>> {
-    create_collect_use(env, 2, || {
-        // XXX: These come from `hash_map` module.
-        env.call(&format!("{}hash-map-make", *MODULE_PREFIX), [])
-    }, |env, v| {
-        print(env, v)?; // Used: #<user-ptr ptr=... finalizer=...>. Free: #<misc free cell>.
-        env.call(&format!("{}hash-map-set", *MODULE_PREFIX), (v, "x", "y"))
-    })
+    create_collect_use(
+        env,
+        2,
+        || {
+            // XXX: These come from `hash_map` module.
+            env.call(&format!("{}hash-map-make", *MODULE_PREFIX), [])
+        },
+        |env, v| {
+            print(env, v)?; // Used: #<user-ptr ptr=... finalizer=...>. Free: #<misc free cell>.
+            env.call(&format!("{}hash-map-set", *MODULE_PREFIX), (v, "x", "y"))
+        },
+    )
 }
 
 #[defun(mod_in_name = false)]
 fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
-    create_collect_use(env, 2, || {
-        match env.call("funcall", [f]) {
+    create_collect_use(
+        env,
+        2,
+        || match env.call("funcall", [f]) {
             Err(error) => {
                 if let Some(Signal { data, .. }) = error.downcast_ref::<ErrorKind>() {
                     unsafe {
@@ -113,8 +120,9 @@ fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
                 Err(error)
             }
             v => v,
-        }
-    }, print)
+        },
+        print,
+    )
 }
 
 /// Attempt to "double-free" a global reference protecting a temporary value.
@@ -129,7 +137,9 @@ fn trigger_double_free_global_ref<'e>(env: &'e Env, func: Value<'e>) -> Result<(
     eprintln!("0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     let _ = env.list((1, 2))?;
     eprintln!("1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    unsafe { env.free_last_protected()?; }
+    unsafe {
+        env.free_last_protected()?;
+    }
     gc(env)?;
     eprintln!("2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     env.call("funcall", [func])?;

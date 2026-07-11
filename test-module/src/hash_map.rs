@@ -1,6 +1,6 @@
 //! Testing a custom hash map: HashMap embedded in user-ptr.
 
-use emacs::{defun, Result};
+use rem::{defun, Result};
 use std::cell::RefCell;
 use std::collections::HashMap;
 

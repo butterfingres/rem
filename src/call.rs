@@ -1,9 +1,12 @@
 use std::borrow::BorrowMut;
 
 use emacs_module::emacs_value;
-use emacs_macros;
+use rem_macros;
 
-use crate::{Env, Value, Result, IntoLisp, global::{GlobalRef, OnceGlobalRef}};
+use crate::{
+    Env, Value, Result, IntoLisp,
+    global::{GlobalRef, OnceGlobalRef},
+};
 
 // TODO: Seal this trait, for safety reasons.
 pub unsafe trait IntoLispArgs<'e> {
@@ -34,7 +37,10 @@ impl<'e> Value<'e> {
     ///
     /// [`IntoLisp`]: trait.IntoLisp.html
     #[inline]
-    pub fn call<A>(self, args: A) -> Result<Value<'e>> where A: IntoLispArgs<'e> {
+    pub fn call<A>(self, args: A) -> Result<Value<'e>>
+    where
+        A: IntoLispArgs<'e>,
+    {
         // Safety: The returned value is explicitly protected.
         unsafe { self.call_unprotected(args).map(|v| v.protect()) }
     }
@@ -51,7 +57,10 @@ impl<'e> Value<'e> {
     /// [bug #31238]: https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31238
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[allow(unused_unsafe)]
-    pub unsafe fn call_unprotected<A>(self, args: A) -> Result<Value<'e>> where A: IntoLispArgs<'e> {
+    pub unsafe fn call_unprotected<A>(self, args: A) -> Result<Value<'e>>
+    where
+        A: IntoLispArgs<'e>,
+    {
         let env = self.env;
         let mut lisp_args = args.into_lisp_args(env)?;
         let lisp_args: &mut [emacs_value] = lisp_args.borrow_mut();
@@ -96,9 +105,9 @@ impl Env {
     /// [`IntoLisp`]: trait.IntoLisp.html
     #[inline]
     pub fn call<'e, F, A>(&'e self, func: F, args: A) -> Result<Value<'_>>
-        where
-            F: IntoLispCallable<'e>,
-            A: IntoLispArgs<'e>,
+    where
+        F: IntoLispCallable<'e>,
+        A: IntoLispArgs<'e>,
     {
         func.into_lisp_callable(self)?.call(args)
     }
@@ -117,9 +126,9 @@ impl Env {
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[inline]
     pub unsafe fn call_unprotected<'e, F, A>(&'e self, func: F, args: A) -> Result<Value<'_>>
-        where
-            F: IntoLispCallable<'e>,
-            A: IntoLispArgs<'e>,
+    where
+        F: IntoLispCallable<'e>,
+        A: IntoLispArgs<'e>,
     {
         let callable = func.into_lisp_callable(self)?;
         // SAFETY: Passthrough to caller.
@@ -137,8 +146,8 @@ impl GlobalRef {
     /// [`IntoLisp`]: trait.IntoLisp.html
     #[inline]
     pub fn call<'e, A>(&'e self, env: &'e Env, args: A) -> Result<Value<'_>>
-        where
-            A: IntoLispArgs<'e>,
+    where
+        A: IntoLispArgs<'e>,
     {
         self.bind(env).call(args)
     }
@@ -157,8 +166,8 @@ impl GlobalRef {
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[inline]
     pub unsafe fn call_unprotected<'e, A>(&'e self, env: &'e Env, args: A) -> Result<Value<'_>>
-        where
-            A: IntoLispArgs<'e>,
+    where
+        A: IntoLispArgs<'e>,
     {
         // SAFETY: Passthrough to caller.
         unsafe { self.bind(env).call_unprotected(args) }
@@ -178,9 +187,9 @@ unsafe impl<'e, T: AsRef<[Value<'e>]> + ?Sized> IntoLispArgs<'e> for &T {
     }
 }
 
-emacs_macros::impl_lisp_args_for_tuples!(12);
+rem_macros::impl_lisp_args_for_tuples!(12);
 
-emacs_macros::impl_lisp_args_for_arrays!(12);
+rem_macros::impl_lisp_args_for_arrays!(12);
 
 impl<'e> IntoLispCallable<'e> for Value<'e> {
     #[inline(always)]

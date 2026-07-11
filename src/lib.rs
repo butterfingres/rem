@@ -29,7 +29,7 @@
 #![allow(mismatched_lifetime_syntaxes)]
 
 #[doc(inline)]
-pub use emacs_macros::{defun, module};
+pub use rem_macros::{defun, module};
 
 #[doc(inline)]
 pub use self::{
@@ -41,7 +41,8 @@ pub use self::{
     error::{ErrorKind, Result, ResultExt, Error},
 };
 
-#[macro_use] mod macros;
+#[macro_use]
+mod macros;
 
 #[doc(hidden)]
 pub mod init;
@@ -68,6 +69,6 @@ pub mod raw {
 /// External dependencies that are mostly used by macros instead of user code.
 #[doc(hidden)]
 pub mod deps {
-    pub use emacs_macros;
+    pub use rem_macros;
     pub use ctor;
 }

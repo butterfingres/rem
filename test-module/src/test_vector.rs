@@ -1,6 +1,6 @@
 //! Testing bindings for vector functions (vec_get, vec_set, vec_size).
 
-use emacs::{defun, Result, Value, Vector};
+use rem::{defun, Result, Value, Vector};
 
 #[defun(mod_in_name = false)]
 fn vec_size(v: Vector) -> Result<usize> {
