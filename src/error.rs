@@ -39,7 +39,7 @@ macro_rules! define_errors {
         fn __emrs_define_errors__() {
             $crate::init::__CUSTOM_ERRORS__.try_lock()
                 .expect("Failed to acquire a write lock on the list of initializers for custom error signals")
-                .push(::std::boxed::Box::new(|env| {
+                .push(|env| {
                     $(
                         env.define_error($name, $message, [
                             $(
@@ -50,7 +50,7 @@ macro_rules! define_errors {
                         ])?;
                     )*
                     Ok(())
-                }));
+                });
         }
     }
 }

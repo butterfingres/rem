@@ -268,7 +268,7 @@ impl LispFunc {
                 full_path.push_str(#name);
                 let mut funcs = #init_fns.lock()
                     .expect("Failed to acquire a write lock on map of initializers");
-                funcs.insert(full_path, ::std::boxed::Box::new(#exporter));
+                funcs.insert(full_path, #exporter);
             }
         }
     }

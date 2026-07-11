@@ -33,7 +33,7 @@ macro_rules! __module_init {
     };
 }
 
-type InitFn = Box<dyn Fn(&Env) -> Result<()> + Send + 'static>;
+type InitFn = fn(&Env) -> Result<()>;
 
 type FnMap = HashMap<String, InitFn>;
 
