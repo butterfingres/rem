@@ -4,7 +4,7 @@ use emacs_module::emacs_value;
 
 use crate::{
     Env, Value, Result, IntoLisp,
-    global::{GlobalRef, OnceGlobalRef},
+    global::{GlobalRef, Fn, LazyGlobalRef, OnceGlobalRef},
 };
 
 // TODO: Seal this trait, for safety reasons.
@@ -216,5 +216,11 @@ impl<'e> IntoLispCallable<'e> for &'e OnceGlobalRef {
     #[inline(always)]
     fn into_lisp_callable(self, env: &'e Env) -> Result<Value<'e>> {
         self.bind(env).into_lisp_callable(env)
+    }
+}
+impl<'e> IntoLispCallable<'e> for &'e LazyGlobalRef<Fn<'_>> {
+    #[inline(always)]
+    fn into_lisp_callable(self, env: &'e Env) -> Result<Value<'e>> {
+        self.try_bind(env)?.into_lisp_callable(env)
     }
 }

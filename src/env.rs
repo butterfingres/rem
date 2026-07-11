@@ -91,14 +91,14 @@ impl Env {
         A: IntoLisp<'e>,
         B: IntoLisp<'e>,
     {
-        self.call(subr::cons, (car, cdr))
+        self.call(&subr::CONS, (car, cdr))
     }
 
     pub fn list<'e, A>(&'e self, args: A) -> Result<Value<'_>>
     where
         A: IntoLispArgs<'e>,
     {
-        self.call(subr::list, args)
+        self.call(&subr::LIST, args)
     }
 
     pub fn provide(&self, name: &str) -> Result<Value<'_>> {
@@ -107,7 +107,7 @@ impl Env {
     }
 
     pub fn message<T: AsRef<str>>(&self, text: T) -> Result<Value<'_>> {
-        self.call(subr::message, (text.as_ref(),))
+        self.call(&subr::MESSAGE, (text.as_ref(),))
     }
 
     /// Opens a channel to a pipe process, returning a writer.

@@ -139,11 +139,11 @@ impl<'e> IntoIterator for Vector<'e> {
 
 impl Env {
     pub fn make_vector<'e, T: IntoLisp<'e>>(&'e self, length: usize, init: T) -> Result<Vector> {
-        let value = self.call(subr::make_vector, (length, init))?;
+        let value = self.call(&subr::MAKE_VECTOR, (length, init))?;
         Ok(Vector::from_value_unchecked(value, length))
     }
 
     pub fn vector<'e, A: IntoLispArgs<'e>>(&'e self, args: A) -> Result<Value> {
-        self.call(subr::vector, args)
+        self.call(&subr::VECTOR, args)
     }
 }

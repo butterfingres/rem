@@ -267,6 +267,11 @@ impl LazyGlobalRefValue for Symbol<'_> {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Fn<'a>(&'a str);
+impl<'a> Fn<'a> {
+    pub const fn new(val: &'a str) -> Self {
+        Self(val)
+    }
+}
 impl LazyGlobalRefValue for Fn<'_> {
     fn initialize<'a>(self, env: &Env, place: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef> {
         place.init(env, move |env| env.call("indirect-function", (env.intern(self.0)?,)))

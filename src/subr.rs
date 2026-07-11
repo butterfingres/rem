@@ -13,16 +13,17 @@
 /// [`use_symbols!`]: crate::use_symbols
 #[macro_export]
 macro_rules! use_functions {
-    ($( $name:ident $( => $lisp_name:expr )? )*) => {
-        $crate::global_refs! {__emrs_init_global_refs_to_functions__(init_to_function) =>
-            $( $name $( => $lisp_name )? )*
-        }
+    ($($ident:ident => $symbol:expr),* $(,)?) => {
+        $(pub static $ident: $crate::LazyGlobalRef<$crate::Fn> = $crate::LazyGlobalRef::new($crate::Fn::new($symbol));)*
     }
 }
 
 use_functions! {
-    cons car cdr
-    vector make_vector
-    list
-    message
+    CONS => "cons",
+    CAR => "car",
+    CDR => "cdr",
+    VECTOR => "vector",
+    MAKE_VECTOR => "make-vector",
+    LIST => "list",
+    MESSAGE => "message",
 }

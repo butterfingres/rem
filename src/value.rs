@@ -111,11 +111,11 @@ impl<'e> Value<'e> {
     }
 
     pub fn car<T: FromLisp<'e>>(self) -> Result<T> {
-        self.env.call(subr::car, (self,))?.into_rust()
+        self.env.call(&subr::CAR, (self,))?.into_rust()
     }
 
     pub fn cdr<T: FromLisp<'e>>(self) -> Result<T> {
-        self.env.call(subr::cdr, (self,))?.into_rust()
+        self.env.call(&subr::CDR, (self,))?.into_rust()
     }
 }
 
