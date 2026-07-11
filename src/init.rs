@@ -139,8 +139,8 @@ where
     match result {
         Ok(v) => v,
         Err(e) => {
-            env.message(format!("Panic during initialization: {:#?}", e))
-                .expect("Failed to message Emacs about initialization panic");
+            // ignore error because there isn't anything we can do without crashing
+            let _ = env.message(format!("Panic during initialization: {:#?}", e));
             2
         }
     }
