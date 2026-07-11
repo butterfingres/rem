@@ -4,7 +4,6 @@
 
 use std::{
     os, panic,
-    collections::HashMap,
     sync::{LazyLock, Mutex, atomic::AtomicBool},
 };
 
@@ -34,8 +33,6 @@ macro_rules! __module_init {
 }
 
 type InitFn = fn(&Env) -> Result<()>;
-
-type FnMap = HashMap<String, InitFn>;
 
 // TODO: How about defining these in user crate, and requiring #[module] to be at the crate's root?
 // TODO: We probably don't need the mutexes.
@@ -69,7 +66,7 @@ pub static __CUSTOM_ERRORS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mu
 /// [`emacs_module_init`].
 ///
 /// [`emacs_module_init`]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Dynamic-Modules.html
-pub static __INIT_FNS__: LazyLock<Mutex<FnMap>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+pub static __INIT_FNS__: LazyLock<Mutex<Vec<InitFn>>> = LazyLock::new(|| Mutex::new(vec![]));
 
 /// Prefix to prepend to name of every Lisp function exposed by the dynamic module through the
 /// attribute macro #[[`defun`]].
