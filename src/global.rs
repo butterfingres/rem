@@ -1,3 +1,5 @@
+#![expect(private_bounds, reason = "the private bounds serve to seal the trait")]
+
 use std::ops::Deref;
 use std::cmp::PartialEq;
 
@@ -240,5 +242,56 @@ impl<'e> PartialEq<OnceGlobalRef> for Value<'e> {
     #[inline]
     fn eq(&self, other: &OnceGlobalRef) -> bool {
         other == self
+    }
+}
+
+trait LazyGlobalRefValue
+where
+    Self: Copy,
+{
+    fn initialize<'a>(self, _: &Env, _: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef>;
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Symbol<'a>(&'a str);
+impl LazyGlobalRefValue for Symbol<'_> {
+    fn initialize<'a>(self, env: &Env, place: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef> {
+        place.init(env, move |env| env.intern(&self.0))
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Fn<'a>(&'a str);
+impl LazyGlobalRefValue for Fn<'_> {
+    fn initialize<'a>(self, env: &Env, place: &'a LazyGlobalRef<Self>) -> Result<&'a GlobalRef> {
+        place.init(env, move |env| env.call("indirect-function", (env.intern(&self.0)?,)))
+    }
+}
+
+pub struct LazyGlobalRef<T>
+where
+    T: LazyGlobalRefValue,
+{
+    val: T,
+    inner: OnceLock<GlobalRef>,
+}
+impl<T> LazyGlobalRef<T>
+where
+    T: LazyGlobalRefValue,
+{
+    /// Initializes this global reference with the given function.
+    fn init<'a, 'e, F: FnOnce(&'e Env) -> Result<Value>>(
+        &'a self,
+        env: &'e Env,
+        f: F,
+    ) -> Result<&'a GlobalRef> {
+        let g = f(env)?.make_global_ref();
+        self.inner.set(g).expect("Cannot initialize a global reference more than once");
+        Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
+    }
+
+    pub fn bind<'e, 'g: 'e>(&'g self, env: &'e Env) -> Result<Value<'e>> {
+        Ok(if let Some(val) = self.inner.get() { val } else { self.val.initialize(env, self)? }
+            .bind(env))
     }
 }
