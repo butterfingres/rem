@@ -22,7 +22,7 @@ use crate::ErrorKind;
 /// This works, because the returned string is copied into the Lisp runtime.
 ///
 /// ```
-/// use emacs::{defun, Result};
+/// use rem::{defun, Result};
 ///
 /// #[defun]
 /// fn foo(s: &String) -> Result<&str> {
@@ -33,7 +33,7 @@ use crate::ErrorKind;
 /// This doesn't work, because the function attempts to give the Lisp runtime a temporary reference.
 ///
 /// ```compile_fail
-/// use emacs::{defun, Result};
+/// use rem::{defun, Result};
 ///
 /// #[defun(user_ptr)]
 /// fn foo(s: &String) -> Result<&str> {

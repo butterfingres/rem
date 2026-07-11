@@ -3,11 +3,11 @@
 //! Code for a minimal module looks like this:
 //!
 //! ```
-//! use emacs::{defun, Env, Result, Value};
+//! use rem::{defun, Env, Result, Value};
 //!
-//! emacs::plugin_is_GPL_compatible!();
+//! rem::plugin_is_GPL_compatible!();
 //!
-//! #[emacs::module(name = "greeting")]
+//! #[rem::module(name = "greeting")]
 //! fn init(_: &Env) -> Result<()> { Ok(()) }
 //!
 //! #[defun]

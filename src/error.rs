@@ -47,7 +47,7 @@ pub enum ErrorKind {
     /// # Examples:
     ///
     /// ```
-    /// # use emacs::*;
+    /// # use rem::*;
     /// # use std::cell::RefCell;
     /// #[defun]
     /// fn wrap(x: i64) -> Result<RefCell<i64>> {

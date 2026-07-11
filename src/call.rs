@@ -25,7 +25,7 @@ impl<'e> Value<'e> {
     /// # Examples
     ///
     /// ```
-    /// # use emacs::{defun, Value, Result, Vector};
+    /// # use rem::{defun, Value, Result, Vector};
     /// #[defun]
     /// fn mapc_enumerate_vec(function: Value, vector: Vector) -> Result<()> {
     ///     for (nth, elem) in vector.into_iter().enumerate() {
@@ -88,7 +88,7 @@ impl Env {
     /// # Examples
     ///
     /// ```
-    /// # use emacs::{defun, Value, Result, Vector};
+    /// # use rem::{defun, Value, Result, Vector};
     /// #[defun]
     /// fn listify_vec(vector: Vector) -> Result<Value> {
     ///     let env = vector.value().env;

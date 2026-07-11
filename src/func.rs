@@ -82,7 +82,7 @@ macro_rules! lambda {
     }};
 }
 
-#[deprecated(since = "0.7.0", note = "Please use `emacs::lambda!` instead")]
+#[deprecated(since = "0.7.0", note = "Please use `rem::lambda!` instead")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! emacs_lambda {

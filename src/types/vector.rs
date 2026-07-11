@@ -10,7 +10,7 @@ use crate::{subr, call::IntoLispArgs};
 /// this type checking, use [`Value`] instead.
 ///
 /// ```
-/// use emacs::{defun, Value, Vector, Result};
+/// use rem::{defun, Value, Vector, Result};
 ///
 /// #[defun]
 /// fn must_pass_vector(vector: Vector) -> Result<Vector> {

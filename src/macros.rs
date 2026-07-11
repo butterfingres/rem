@@ -77,7 +77,7 @@ macro_rules! plugin_is_GPL_compatible {
     };
 }
 
-#[deprecated(since = "0.7.0", note = "Please use `emacs::plugin_is_GPL_compatible!` instead")]
+#[deprecated(since = "0.7.0", note = "Please use `rem::plugin_is_GPL_compatible!` instead")]
 #[doc(hidden)]
 #[macro_export]
 #[allow(non_snake_case)]
