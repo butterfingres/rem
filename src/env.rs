@@ -1,10 +1,4 @@
-use std::{
-    cell::RefCell,
-    ffi::CString,
-    mem::MaybeUninit,
-    fmt::Debug,
-    io::{Write, PipeWriter},
-};
+use std::{cell::RefCell, ffi::CString, mem::MaybeUninit, fmt::Debug};
 
 use std::sync::OnceLock;
 
@@ -122,7 +116,7 @@ impl Env {
     /// the pipe process's filter function in Emacs.
     ///
     /// Requires Emacs 28+.
-    #[cfg(all(feature = "emacs-28"))]
+    #[cfg(feature = "emacs-28")]
     pub fn open_channel<'e>(
         &'e self,
         pipe_process: Value<'e>,

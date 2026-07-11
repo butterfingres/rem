@@ -62,6 +62,10 @@ impl<'e> Vector<'e> {
         Ok(self.len)
     }
 
+    #[expect(
+        clippy::len_without_is_empty,
+        reason = "an `is_empty` implementation would not be faster than checking `len() == 0`"
+    )]
     #[inline]
     pub fn len(&self) -> usize {
         self.len

@@ -1,7 +1,6 @@
 use std::borrow::BorrowMut;
 
 use emacs_module::emacs_value;
-use rem_macros;
 
 use crate::{
     Env, Value, Result, IntoLisp,
@@ -9,6 +8,7 @@ use crate::{
 };
 
 // TODO: Seal this trait, for safety reasons.
+#[expect(clippy::missing_safety_doc, reason = "TODO")]
 pub unsafe trait IntoLispArgs<'e> {
     type LispArgs: BorrowMut<[emacs_value]>;
 
@@ -81,9 +81,9 @@ impl Env {
     /// Calls a Lisp function, passing the given arguments.
     ///
     /// - `func` should be a string, or a Lisp's callable [`Value`] (in which case [`func.call`]
-    /// is preferable). An error is signaled otherwise.
+    ///   is preferable). An error is signaled otherwise.
     /// - `args` should be an array/slice of [`Value`], or a tuple of different types, each
-    /// implementing [`IntoLisp`].
+    ///   implementing [`IntoLisp`].
     ///
     /// # Examples
     ///

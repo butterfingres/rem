@@ -30,7 +30,7 @@ fn impl_for_tuple(arity: usize) -> TokenStream2 {
         values.append_all(quote!(self.#i.into_lisp(env)?.raw, ));
     }
 
-    return quote! {
+    quote! {
         unsafe impl<'e, #types> IntoLispArgs<'e> for (#types) where #constraints {
             type LispArgs = [emacs_value; #arity];
 
@@ -39,7 +39,7 @@ fn impl_for_tuple(arity: usize) -> TokenStream2 {
                 Ok([#values])
             }
         }
-    };
+    }
 }
 
 fn impl_for_array(length: usize) -> TokenStream2 {
@@ -47,7 +47,7 @@ fn impl_for_array(length: usize) -> TokenStream2 {
     for i in 0..length {
         values.append_all(quote!(self[#i].raw, ));
     }
-    return quote! {
+    quote! {
         unsafe impl IntoLispArgs<'_> for [Value<'_>; #length] {
             type LispArgs = [emacs_value; #length];
 
@@ -56,5 +56,5 @@ fn impl_for_array(length: usize) -> TokenStream2 {
                 Ok([#values])
             }
         }
-    };
+    }
 }

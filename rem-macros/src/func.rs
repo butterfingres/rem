@@ -296,7 +296,7 @@ fn check_signature(sig: &Signature) -> Result<(Vec<Arg>, Range<usize>, Span), To
         match fn_arg {
             FnArg::Typed(PatType { ty, pat, .. }) => {
                 let span = fn_arg.span();
-                args.push(if is_env(&ty) {
+                args.push(if is_env(ty) {
                     match ty.as_ref() {
                         Type::Reference(_) => (),
                         _ => report(errors, fn_arg, "Can only take an &Env, not an Env"),
@@ -334,7 +334,7 @@ fn check_signature(sig: &Signature) -> Result<(Vec<Arg>, Range<usize>, Span), To
     let output_span = match &sig.output {
         ReturnType::Type(_, ty) => ty.span(),
         _ => {
-            report(errors, &sig.fn_token, "Must return rem::Result<T> where T: IntoLisp<'_>");
+            report(errors, sig.fn_token, "Must return rem::Result<T> where T: IntoLisp<'_>");
             sig.fn_token.span()
         }
     };
@@ -364,9 +364,9 @@ fn lisp_name(arg: &Arg) -> Option<String> {
 fn lisp_signature(args: &[Arg]) -> String {
     let mut sig = "(fn".to_owned();
     for arg in args.iter().flat_map(lisp_name) {
-        sig.push_str(" ");
+        sig.push(' ');
         sig.push_str(&arg);
     }
-    sig.push_str(")");
+    sig.push(')');
     sig
 }

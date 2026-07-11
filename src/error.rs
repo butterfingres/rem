@@ -201,7 +201,7 @@ impl Env {
                     m = match error.downcast::<ErrorKind>() {
                         // TODO: Explain safety.
                         Ok(err) => unsafe {
-                            return self.handle_known(&*err);
+                            return self.handle_known(&err);
                         },
                         Err(error) => Err(error),
                     }
@@ -245,7 +245,7 @@ impl Env {
     }
 
     fn signal_internal(&self, symbol: &GlobalRef, message: &str) -> Result<emacs_value> {
-        let message = message.into_lisp(&self)?;
+        let message = message.into_lisp(self)?;
         let data = self.list([message])?;
         unsafe { Ok(self.non_local_exit_signal(symbol.bind(self).raw, data.raw)) }
     }

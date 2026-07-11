@@ -169,7 +169,7 @@ impl CallEnv {
     pub fn get_arg(&self, i: usize) -> Value<'_> {
         let args: &[emacs_value] = self.raw_args();
         // Safety: Emacs assures *args are on the stack for the duration of the call.
-        unsafe { Value::new(args[i], &self) }
+        unsafe { Value::new(args[i], self) }
     }
 
     #[inline]

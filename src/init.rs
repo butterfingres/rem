@@ -151,8 +151,8 @@ fn lisp_name(s: &str) -> String {
 }
 
 pub fn lisp_pkg(mod_path: &str) -> String {
-    let crate_name = mod_path.split("::").nth(0).expect("mod_path is empty!");
-    lisp_name(&crate_name)
+    let crate_name = mod_path.split("::").next().expect("mod_path is empty!");
+    lisp_name(crate_name)
 }
 
 pub fn lisp_path(mod_path: &str) -> String {

@@ -207,6 +207,11 @@ impl OnceGlobalRef {
         })
     }
 }
+impl Default for OnceGlobalRef {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl<'e> IntoLisp<'e> for &'e OnceGlobalRef {
     #[inline(always)]

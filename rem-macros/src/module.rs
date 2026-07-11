@@ -5,9 +5,10 @@ use syn::ItemFn;
 
 use crate::util;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 enum Name {
     /// Use crate's name.
+    #[default]
     Crate,
     /// Use initializer function's name.
     Fn,
@@ -43,11 +44,6 @@ mod default {
     }
     pub fn mod_in_name() -> bool {
         true
-    }
-    impl Default for super::Name {
-        fn default() -> Self {
-            super::Name::Crate
-        }
     }
 }
 
