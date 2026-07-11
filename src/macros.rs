@@ -89,6 +89,26 @@ macro_rules! emacs_plugin_is_GPL_compatible {
 
 #[doc(hidden)]
 #[macro_export]
+macro_rules! const_concat {
+    ($l:expr, $r:expr) => {{
+        const L: &::std::primitive::str = $l;
+        const R: &::std::primitive::str = $r;
+
+        const LEN: ::std::primitive::usize = L.len() + R.len();
+        const BUF: [::std::primitive::u8; LEN] = {
+            let mut buf = [0; LEN];
+            unsafe {
+                ::std::ptr::copy_nonoverlapping(L.as_ptr(), buf.as_mut_ptr(), L.len());
+                ::std::ptr::copy_nonoverlapping(R.as_ptr(), buf.as_mut_ptr().add(L.len()), R.len());
+            }
+            buf
+        };
+        const { unsafe { ::std::str::from_utf8_unchecked(&BUF) } }
+    }};
+}
+
+#[doc(hidden)]
+#[macro_export]
 macro_rules! lisp_pkg {
     () => {{
         const PATH: &::std::primitive::str = module_path!();
@@ -106,11 +126,14 @@ macro_rules! lisp_pkg {
             let mut buf = [0; LEN];
             let mut i = 0;
             while i < LEN {
-                buf[i] = PATH.as_bytes()[i];
+                buf[i] = match PATH.as_bytes()[i] {
+                    b'_' => b'-',
+                    ch => ch,
+                }
                 i += 1;
             }
             buf
         };
-        const { ::std::str::from_utf8_unchecked(&BUF) }
+        const { unsafe { ::std::str::from_utf8_unchecked(&BUF) } }
     }};
 }
