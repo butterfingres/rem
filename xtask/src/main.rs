@@ -179,7 +179,9 @@ fn test(watch: bool, release: bool, verbose: bool) -> Result<()> {
         // cargo-watch doesn't support passing flags through -s easily with spaces, so build and
         // test commands are kept as simple strings.
         let mut suffix = if release { " --release" } else { "" }.to_string();
-        if verbose { suffix.push_str(" --verbose"); }
+        if verbose {
+            suffix.push_str(" --verbose");
+        }
         let build_cmd = format!("cargo xtask build{suffix}");
         let test_cmd = format!("cargo xtask test{suffix}");
         return cmd!(sh, "cargo watch -s {build_cmd} -s {test_cmd}").run().map_err(Into::into);
@@ -214,7 +216,11 @@ fn test(watch: bool, release: bool, verbose: bool) -> Result<()> {
 
     println!("Testing test-module");
     let main_el = root.join("test-module/tests/main.el");
-    cmd!(sh, "{emacs} -Q -batch --directory {target} -l ert -l {main_el} -f ert-run-tests-batch-and-exit").run()?;
+    cmd!(
+        sh,
+        "{emacs} -Q -batch --directory {target} -l ert -l {main_el} -f ert-run-tests-batch-and-exit"
+    )
+    .run()?;
 
     println!("Testing test-module-28");
     let main_el_28 = root.join("test-module-28/tests/main.el");

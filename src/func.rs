@@ -62,26 +62,24 @@ macro_rules! lambda {
     };
 
     // Declare a wrapper function.
-    ($env:expr, $func:path, $arities:expr, $doc:expr $(,)*) => {
-        {
-            use $crate::func::HandleCall;
-            use $crate::func::Manage;
-            // TODO: Generate identifier from $func.
-            unsafe extern "C" fn extern_lambda(
-                env: *mut $crate::raw::emacs_env,
-                nargs: isize,
-                args: *mut $crate::raw::emacs_value,
-                _data: *mut ::std::os::raw::c_void,
-            ) -> $crate::raw::emacs_value {
-                let env = $crate::Env::new(env);
-                let env = $crate::CallEnv::new(env, nargs, args);
-                env.handle_call($func)
-            }
-
-            // Safety: The raw pointer is simply ignored.
-            unsafe { $env.make_function(extern_lambda, $arities, $doc, ::std::ptr::null_mut()) }
+    ($env:expr, $func:path, $arities:expr, $doc:expr $(,)*) => {{
+        use $crate::func::HandleCall;
+        use $crate::func::Manage;
+        // TODO: Generate identifier from $func.
+        unsafe extern "C" fn extern_lambda(
+            env: *mut $crate::raw::emacs_env,
+            nargs: isize,
+            args: *mut $crate::raw::emacs_value,
+            _data: *mut ::std::os::raw::c_void,
+        ) -> $crate::raw::emacs_value {
+            let env = $crate::Env::new(env);
+            let env = $crate::CallEnv::new(env, nargs, args);
+            env.handle_call($func)
         }
-    };
+
+        // Safety: The raw pointer is simply ignored.
+        unsafe { $env.make_function(extern_lambda, $arities, $doc, ::std::ptr::null_mut()) }
+    }};
 }
 
 #[deprecated(since = "0.7.0", note = "Please use `emacs::lambda!` instead")]
@@ -150,11 +148,7 @@ pub struct CallEnv {
 impl CallEnv {
     #[doc(hidden)]
     #[inline]
-    pub unsafe fn new(
-        env: Env,
-        nargs: isize,
-        args: *mut emacs_value,
-    ) -> Self {
+    pub unsafe fn new(env: Env, nargs: isize, args: *mut emacs_value) -> Self {
         let nargs = nargs as usize;
         Self { env, nargs, args }
     }
@@ -197,9 +191,9 @@ impl Deref for CallEnv {
 
 pub trait HandleCall {
     fn handle_call<'e, T, F>(&'e self, f: F) -> emacs_value
-        where
-            F: Fn(&'e CallEnv) -> Result<T> + panic::RefUnwindSafe,
-            T: IntoLisp<'e>;
+    where
+        F: Fn(&'e CallEnv) -> Result<T> + panic::RefUnwindSafe,
+        T: IntoLisp<'e>;
 }
 
 impl HandleCall for CallEnv {

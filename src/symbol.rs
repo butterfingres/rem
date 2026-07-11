@@ -1,4 +1,7 @@
-use crate::{Env, Result, Value, global::{GlobalRef, OnceGlobalRef}};
+use crate::{
+    Env, Result, Value,
+    global::{GlobalRef, OnceGlobalRef},
+};
 
 /// Defines static [`&OnceGlobalRef`] variables that point to corresponding Lisp symbols.
 ///

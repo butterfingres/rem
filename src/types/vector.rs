@@ -76,7 +76,8 @@ impl<'e> Vector<'e> {
 impl<'e> FromLisp<'e> for Vector<'e> {
     fn from_lisp(value: Value<'e>) -> Result<Vector<'e>> {
         let env = value.env;
-        let len = unsafe_raw_call!(env, vec_size, value.raw)?.try_into()
+        let len = unsafe_raw_call!(env, vec_size, value.raw)?
+            .try_into()
             .expect("Invalid size from Emacs");
         Ok(Vector { value, len })
     }

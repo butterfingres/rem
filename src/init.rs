@@ -75,7 +75,8 @@ pub static __INIT_FNS__: LazyLock<Mutex<FnMap>> = LazyLock::new(|| Mutex::new(Ha
 /// attribute macro #[[`defun`]].
 ///
 /// [`defun`]: attr.defun.html
-pub static __PREFIX__: LazyLock<Mutex<[String; 2]>> = LazyLock::new(|| Mutex::new(["".to_owned(), "-".to_owned()]));
+pub static __PREFIX__: LazyLock<Mutex<[String; 2]>> =
+    LazyLock::new(|| Mutex::new(["".to_owned(), "-".to_owned()]));
 
 pub static __MOD_IN_NAME__: LazyLock<AtomicBool> = LazyLock::new(|| AtomicBool::new(true));
 
@@ -87,9 +88,7 @@ fn check_gc_bug_31238(env: &Env) -> Result<()> {
     let version = env.call("default-value", [env.intern("emacs-version")?])?;
     let fixed = env.call("version<=", ("27", version))?.is_not_nil();
     if debugging() {
-        env.call("set", (
-            env.intern("module-rs-disable-gc-bug-31238-workaround")?, fixed
-        ))?;
+        env.call("set", (env.intern("module-rs-disable-gc-bug-31238-workaround")?, fixed))?;
     }
     crate::env::HAS_FIXED_GC_BUG_31238.get_or_init(|| fixed);
     Ok(())
@@ -97,36 +96,44 @@ fn check_gc_bug_31238(env: &Env) -> Result<()> {
 
 #[inline]
 pub fn initialize<F>(env: &Env, init: F) -> os::raw::c_int
-    where
-        F: Fn(&Env) -> Result<Value<'_>> + panic::RefUnwindSafe,
+where
+    F: Fn(&Env) -> Result<Value<'_>> + panic::RefUnwindSafe,
 {
     let env = panic::AssertUnwindSafe(env);
-    let result = panic::catch_unwind(|| match (|| {
-        for init_global_ref in __GLOBAL_REFS__.try_lock()
-            .expect("Failed to acquire a read lock on the list of initializers for global-refs").iter() {
-            init_global_ref(&env)?;
-        }
-        env.define_core_errors()?;
-        check_gc_bug_31238(&env)?;
-        for define_error in __CUSTOM_ERRORS__.try_lock()
+    let result = panic::catch_unwind(|| {
+        match (|| {
+            for init_global_ref in __GLOBAL_REFS__
+                .try_lock()
+                .expect("Failed to acquire a read lock on the list of initializers for global-refs")
+                .iter()
+            {
+                init_global_ref(&env)?;
+            }
+            env.define_core_errors()?;
+            check_gc_bug_31238(&env)?;
+            for define_error in __CUSTOM_ERRORS__.try_lock()
             .expect("Failed to acquire a read lock on the list of initializers for custom error signals").iter() {
             define_error(&env)?;
         }
-        init(&env)
-    })() {
-        Ok(_) => 0,
-        Err(e) => {
-            if let Some(ErrorKind::Signal { symbol, data }) = e.downcast_ref::<ErrorKind>() {
-                env.call("message", (
-                    "Error during initialization: symbol: %s data: %s",
-                    unsafe { symbol.value(&env) },
-                    unsafe { data.value(&env) },
-                ))
-            } else {
-                env.message(format!("Error during initialization: {:#?}", e))
-            }
+            init(&env)
+        })() {
+            Ok(_) => 0,
+            Err(e) => {
+                if let Some(ErrorKind::Signal { symbol, data }) = e.downcast_ref::<ErrorKind>() {
+                    env.call(
+                        "message",
+                        (
+                            "Error during initialization: symbol: %s data: %s",
+                            unsafe { symbol.value(&env) },
+                            unsafe { data.value(&env) },
+                        ),
+                    )
+                } else {
+                    env.message(format!("Error during initialization: {:#?}", e))
+                }
                 .expect("Failed to message Emacs about initialization error");
-            1
+                1
+            }
         }
     });
     match result {

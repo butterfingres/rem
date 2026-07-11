@@ -92,11 +92,18 @@ impl Env {
         unsafe_raw_call_no_exit!(self, eq, a.raw, b.raw)
     }
 
-    pub fn cons<'e, A, B>(&'e self, car: A, cdr: B) -> Result<Value<'_>> where A: IntoLisp<'e>, B: IntoLisp<'e> {
+    pub fn cons<'e, A, B>(&'e self, car: A, cdr: B) -> Result<Value<'_>>
+    where
+        A: IntoLisp<'e>,
+        B: IntoLisp<'e>,
+    {
         self.call(subr::cons, (car, cdr))
     }
 
-    pub fn list<'e, A>(&'e self, args: A) -> Result<Value<'_>> where A: IntoLispArgs<'e> {
+    pub fn list<'e, A>(&'e self, args: A) -> Result<Value<'_>>
+    where
+        A: IntoLispArgs<'e>,
+    {
         self.call(subr::list, args)
     }
 
@@ -116,9 +123,10 @@ impl Env {
     ///
     /// Requires Emacs 28+.
     #[cfg(all(feature = "emacs-28"))]
-    pub fn open_channel<'e>(&'e self, pipe_process: Value<'e>)
-        -> Result<impl Write + Debug + Send + Sync + use<>>
-    {
+    pub fn open_channel<'e>(
+        &'e self,
+        pipe_process: Value<'e>,
+    ) -> Result<impl Write + Debug + Send + Sync + use<>> {
         let raw_fd = unsafe_raw_call!(self, open_channel, pipe_process.raw)?;
 
         #[cfg(target_os = "windows")]
@@ -165,9 +173,13 @@ impl Drop for Env {
                 unsafe_raw_call_no_exit!(self, free_global_ref, *raw);
             }
             match status {
-                error::SIGNAL => unsafe { self.non_local_exit_signal(symbol.assume_init(), data.assume_init()); }
-                error::THROW => unsafe { self.non_local_exit_throw(symbol.assume_init(), data.assume_init()); }
-                _ => ()
+                error::SIGNAL => unsafe {
+                    self.non_local_exit_signal(symbol.assume_init(), data.assume_init());
+                },
+                error::THROW => unsafe {
+                    self.non_local_exit_throw(symbol.assume_init(), data.assume_init());
+                },
+                _ => (),
             }
         }
     }

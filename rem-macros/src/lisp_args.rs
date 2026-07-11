@@ -19,9 +19,7 @@ pub fn impl_for_arrays(max_length: usize) -> TokenStream2 {
 }
 
 fn impl_for_tuple(arity: usize) -> TokenStream2 {
-    let type_vars = (0..arity).map(|n| {
-        Ident::new(&format!("T{}", n + 1), Span::call_site())
-    });
+    let type_vars = (0..arity).map(|n| Ident::new(&format!("T{}", n + 1), Span::call_site()));
     let mut types = TokenStream2::new();
     let mut constraints = TokenStream2::new();
     let mut values = TokenStream2::new();

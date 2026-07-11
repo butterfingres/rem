@@ -21,7 +21,7 @@ macro_rules! int_from_lisp {
                 Ok(i as $name)
             }
         }
-    }
+    };
 }
 
 int_from_lisp!(i8);
@@ -54,7 +54,7 @@ macro_rules! nonzero_int_from_lisp {
                 Ok(i.try_into()?)
             }
         }
-    }
+    };
 }
 
 nonzero_int_from_lisp!(NonZeroU8(u8));

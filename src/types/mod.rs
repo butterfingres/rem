@@ -51,11 +51,7 @@ impl<'e> IntoLisp<'e> for Value<'e> {
 
 impl<'e, T: FromLisp<'e>> FromLisp<'e> for Option<T> {
     fn from_lisp(value: Value<'e>) -> Result<Self> {
-        if value.is_not_nil() {
-            Ok(Some(<T as FromLisp>::from_lisp(value)?))
-        } else {
-            Ok(None)
-        }
+        if value.is_not_nil() { Ok(Some(<T as FromLisp>::from_lisp(value)?)) } else { Ok(None) }
     }
 }
 
@@ -76,10 +72,6 @@ impl IntoLisp<'_> for () {
 
 impl IntoLisp<'_> for bool {
     fn into_lisp(self, env: &Env) -> Result<Value<'_>> {
-        if self {
-            symbol::t.into_lisp(env)
-        } else {
-            symbol::nil.into_lisp(env)
-        }
+        if self { symbol::t.into_lisp(env) } else { symbol::nil.into_lisp(env) }
     }
 }

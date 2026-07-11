@@ -1,7 +1,5 @@
 use std::{
-    os,
-    ptr,
-    any,
+    os, ptr, any,
     cell::RefCell,
     rc::Rc,
     sync::{Mutex, RwLock, Arc},
@@ -120,7 +118,11 @@ impl Env {
     /// [`defun`]: attr.defun.html
     #[allow(unused_unsafe)]
     #[inline]
-    pub unsafe fn make_user_ptr(&self, fin: emacs_finalizer_function, ptr: *mut os::raw::c_void) -> Result<Value> {
+    pub unsafe fn make_user_ptr(
+        &self,
+        fin: emacs_finalizer_function,
+        ptr: *mut os::raw::c_void,
+    ) -> Result<Value> {
         unsafe_raw_call_value!(self, make_user_ptr, fin, ptr)
     }
 }
@@ -152,7 +154,12 @@ impl<'e> Value<'e> {
         match self.get_user_finalizer()? {
             // TODO: Consider using dynamic dispatch for finalize, and core::any for type checking.
             //  I'm not sure this is sound.
-            Some(fin) if ptr::fn_addr_eq(fin, finalize::<T> as unsafe extern "C" fn(*mut os::raw::c_void)) => {
+            Some(fin)
+                if ptr::fn_addr_eq(
+                    fin,
+                    finalize::<T> as unsafe extern "C" fn(*mut os::raw::c_void),
+                ) =>
+            {
                 let ptr = self.get_user_ptr()?;
                 Ok(ptr as *mut T)
             }
