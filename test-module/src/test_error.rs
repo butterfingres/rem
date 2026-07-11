@@ -84,13 +84,18 @@ fn parse_arg(env: &CallEnv) -> Result<String> {
     Ok(s)
 }
 
-rem::define_errors! {
-    emrs_file_error "File error"
-    emacs_module_rs_test_error "Hello" (rust_error)
-    error_defined_without_parent "Error"
+rem::use_symbols! {
+    emrs_file_error => "emrs-file-error"
+    emacs_module_rs_test_error => "emacs-module-rs-test-error"
+    error_defined_without_parent => "error-defined-without-parent"
+    rust_error => "rust-error"
 }
 
 pub fn init(env: &Env) -> Result<()> {
+    env.define_error(emrs_file_error, "File error", [])?;
+    env.define_error(emacs_module_rs_test_error, "Hello", [rust_error.bind(env)])?;
+    env.define_error(error_defined_without_parent, "Error", [])?;
+
     rem::__export_functions! {
         env, format!("{}error:", *MODULE_PREFIX), {
             "parse-arg"   => (parse_arg   , 2..5),

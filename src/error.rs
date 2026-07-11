@@ -23,38 +23,6 @@ pub struct TempValue {
     raw: emacs_value,
 }
 
-/// Defines new error signals.
-///
-/// TODO: Document this properly.
-///
-/// This macro can be used only once per Rust `mod`.
-#[macro_export]
-macro_rules! define_errors {
-    ($( $name:ident $message:literal $( ( $( $parent:ident )+ ) )? )*) => {
-        $crate::global_refs! {__emrs_init_global_refs_to_error_symbols__(init_to_symbol) =>
-            $( $name )*
-        }
-
-        #[$crate::deps::ctor::ctor(crate_path = $crate::deps::ctor)]
-        fn __emrs_define_errors__() {
-            $crate::init::__CUSTOM_ERRORS__.try_lock()
-                .expect("Failed to acquire a write lock on the list of initializers for custom error signals")
-                .push(|env| {
-                    $(
-                        env.define_error($name, $message, [
-                            $(
-                                $(
-                                    env.intern($crate::deps::rem_macros::lisp_name!($parent))?
-                                ),+
-                            )?
-                        ])?;
-                    )*
-                    Ok(())
-                });
-        }
-    }
-}
-
 /// Error types generic to all Rust dynamic modules.
 ///
 /// This list is intended to grow over time and it is not recommended to exhaustively match against

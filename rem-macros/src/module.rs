@@ -1,7 +1,7 @@
 use darling::{self, ast::NestedMeta, FromMeta};
 use proc_macro2::{TokenStream as TokenStream2};
 use quote::quote;
-use syn::ItemFn;
+use syn::{ItemFn};
 
 use crate::util;
 
