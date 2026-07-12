@@ -95,7 +95,7 @@ impl TempValue {
     /// [`Env`]: struct.Env.html
     pub unsafe fn value<'e>(&self, env: &'e Env) -> Value<'e> {
         // SAFETY: Caller guarantees env is the Env from which this error originated.
-        unsafe { Value::new(self.raw, env) }.protect()
+        unsafe { Value::new(self.raw, env) }.protect(env)
     }
 }
 

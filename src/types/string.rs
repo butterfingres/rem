@@ -2,10 +2,10 @@ use std::{os, ptr, cmp};
 
 use super::*;
 
-impl FromLisp<'_> for String {
+impl<'e> FromLisp<'e> for String {
     #[cfg(not(feature = "utf-8-validation"))]
-    fn from_lisp(value: Value<'_>) -> Result<Self> {
-        let bytes = value.env.string_bytes(value)?;
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        let bytes = env.string_bytes(value)?;
         // Safety: We trust Emacs to give us valid utf-8 bytes.
         unsafe { Ok(String::from_utf8_unchecked(bytes)) }
     }
@@ -47,8 +47,7 @@ impl<'e> Value<'e> {
     /// string. Returns the copied bytes, excluding the null terminator.
     ///
     /// Signals an `args-out-of-range` error if the buffer is too small.
-    pub fn copy_string_contents(self, buffer: &mut [u8]) -> Result<&[u8]> {
-        let env = self.env;
+    pub fn copy_string_contents<'a>(self, env: &'e Env, buffer: &'a mut [u8]) -> Result<&'a [u8]> {
         let ptr = buffer.as_mut_ptr() as *mut os::raw::c_char;
         let max_len = buffer.len();
         let mut len = max_len as isize;

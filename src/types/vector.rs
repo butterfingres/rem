@@ -38,19 +38,17 @@ impl<'e> Vector<'e> {
         Self { value, len }
     }
 
-    pub fn get<T: FromLisp<'e>>(&self, i: usize) -> Result<T> {
+    pub fn get<T: FromLisp<'e>>(&self, env: &'e Env, i: usize) -> Result<T> {
         let v = self.value;
-        let env = v.env;
         // Safety:
         // - Same lifetime.
         // - Emacs does bound checking.
         // - Value doesn't need protection because we are done with it while the vector still lives.
-        unsafe_raw_call_value_unprotected!(env, vec_get, v.raw, i as isize)?.into_rust()
+        unsafe_raw_call_value_unprotected!(env, vec_get, v.raw, i as isize)?.into_rust(env)
     }
 
-    pub fn set<T: IntoLisp<'e>>(&self, i: usize, value: T) -> Result<()> {
+    pub fn set<T: IntoLisp<'e>>(&self, env: &'e Env, i: usize, value: T) -> Result<()> {
         let v = self.value;
-        let env = v.env;
         let value = value.into_lisp(env)?;
         // Safety: Same lifetime. Emacs does bound checking.
         unsafe_raw_call!(env, vec_set, v.raw, i as isize, value.raw)
@@ -78,8 +76,7 @@ impl<'e> Vector<'e> {
 }
 
 impl<'e> FromLisp<'e> for Vector<'e> {
-    fn from_lisp(value: Value<'e>) -> Result<Vector<'e>> {
-        let env = value.env;
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Vector<'e>> {
         let len = unsafe_raw_call!(env, vec_size, value.raw)?
             .try_into()
             .expect("Invalid size from Emacs");
@@ -94,48 +91,48 @@ impl<'e> IntoLisp<'e> for Vector<'e> {
     }
 }
 
-/// An iterator over the elements of a [`Vector`], as [`Value`] structs.
-///
-/// [`Vector`]: struct.Vector.html
-/// [`Value`]: struct.Value.html
-pub struct IntoIter<'e> {
-    vector: Vector<'e>,
-    i: usize,
-}
+// /// An iterator over the elements of a [`Vector`], as [`Value`] structs.
+// ///
+// /// [`Vector`]: struct.Vector.html
+// /// [`Value`]: struct.Value.html
+// pub struct IntoIter<'e> {
+//     vector: Vector<'e>,
+//     i: usize,
+// }
 
-impl<'e> Iterator for IntoIter<'e> {
-    type Item = Value<'e>;
+// impl<'e> Iterator for IntoIter<'e> {
+//     type Item = Value<'e>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let i = self.i;
-        if i >= self.vector.len {
-            None
-        } else {
-            self.i += 1;
-            Some(self.vector.get(i).unwrap_or_else(|err| {
-                panic!("Unable to get Emacs vector's element at index {}: {}", i, err)
-            }))
-        }
-    }
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let i = self.i;
+//         if i >= self.vector.len {
+//             None
+//         } else {
+//             self.i += 1;
+//             Some(self.vector.get(i).unwrap_or_else(|err| {
+//                 panic!("Unable to get Emacs vector's element at index {}: {}", i, err)
+//             }))
+//         }
+//     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.vector.len - self.i;
-        (remaining, Some(remaining))
-    }
-}
+//     fn size_hint(&self) -> (usize, Option<usize>) {
+//         let remaining = self.vector.len - self.i;
+//         (remaining, Some(remaining))
+//     }
+// }
 
-impl<'e> ExactSizeIterator for IntoIter<'e> {}
+// impl<'e> ExactSizeIterator for IntoIter<'e> {}
 
-impl<'e> IntoIterator for Vector<'e> {
-    type Item = Value<'e>;
+// impl<'e> IntoIterator for Vector<'e> {
+//     type Item = Value<'e>;
 
-    type IntoIter = IntoIter<'e>;
+//     type IntoIter = IntoIter<'e>;
 
-    #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        IntoIter { vector: self, i: 0 }
-    }
-}
+//     #[inline]
+//     fn into_iter(self) -> Self::IntoIter {
+//         IntoIter { vector: self, i: 0 }
+//     }
+// }
 
 impl Env {
     pub fn make_vector<'e, T: IntoLisp<'e>>(&'e self, length: usize, init: T) -> Result<Vector> {

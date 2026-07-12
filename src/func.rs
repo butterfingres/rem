@@ -174,7 +174,7 @@ impl CallEnv {
 
     #[inline]
     pub fn parse_arg<'e, T: FromLisp<'e>>(&'e self, i: usize) -> Result<T> {
-        self.get_arg(i).into_rust()
+        self.get_arg(i).into_rust(&self.env)
     }
 }
 
@@ -212,3 +212,7 @@ impl HandleCall for CallEnv {
         env.handle_panic(result)
     }
 }
+
+// pub trait LispFn {
+//     fn call<'e>(&self, _: &'e Env, args: &[])
+// }

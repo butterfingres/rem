@@ -70,8 +70,8 @@ fn ignore_args(_: &Env, _: u8, _: u16) -> Result<()> {
 }
 
 #[defun(mod_in_name = false)]
-fn copy_string_contents(v: Value, size: usize) -> Result<String> {
+fn copy_string_contents(env: &Env, v: Value, size: usize) -> Result<String> {
     let mut buffer = vec![0u8; size];
-    let s = v.copy_string_contents(&mut buffer)?;
+    let s = v.copy_string_contents(env, &mut buffer)?;
     Ok(String::from_utf8_lossy(s).to_string())
 }

@@ -11,16 +11,14 @@ use_symbols! {
 
 /// Return t if A and B are `eq` (using Rust's `==` operator on `Value`).
 #[defun(mod_in_name = false, name = "eq:value-eq")]
-fn value_eq<'e>(a: Value<'e>, b: Value<'e>) -> Result<Value<'e>> {
-    let env = a.env;
-    (a == b).into_lisp(env)
+fn value_eq<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Value<'e>> {
+    (a.eq(env, b)).into_lisp(env)
 }
 
 /// Return t if GLOBAL-REF is `eq` to VALUE (using Rust's `==` on `GlobalRef`).
 #[defun(mod_in_name = false, name = "eq:global-ref-eq")]
-fn global_ref_eq<'e>(global: GlobalRef, value: Value<'e>) -> Result<Value<'e>> {
-    let env = value.env;
-    (global == value).into_lisp(env)
+fn global_ref_eq<'e>(env: &'e Env, global: GlobalRef, value: Value<'e>) -> Result<Value<'e>> {
+    (global.eq(env, value)).into_lisp(env)
 }
 
 /// Return a newly allocated string with the given content, for testing that equal
@@ -37,12 +35,12 @@ fn new_string(env: &Env, s: String) -> Result<Value<'_>> {
 /// incoming argument against `use_symbols!`-imported `OnceGlobalRef` globals
 /// avoiding repeated `intern` calls on the hot path.
 #[defun(mod_in_name = false, name = "eq:classify-position")]
-fn classify_position(position: Value<'_>) -> Result<String> {
-    if LEFT == position {
+fn classify_position(env: &Env, position: Value<'_>) -> Result<String> {
+    if LEFT.eq(env, position) {
         Ok("left".to_owned())
-    } else if RIGHT == position {
+    } else if RIGHT.eq(env, position) {
         Ok("right".to_owned())
-    } else if CENTER == position {
+    } else if CENTER.eq(env, position) {
         Ok("center".to_owned())
     } else {
         Ok("unknown".to_owned())

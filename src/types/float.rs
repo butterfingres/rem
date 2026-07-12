@@ -1,8 +1,8 @@
 use super::*;
 
-impl FromLisp<'_> for f64 {
-    fn from_lisp(value: Value<'_>) -> Result<Self> {
-        unsafe_raw_call!(value.env, extract_float, value.raw)
+impl<'e> FromLisp<'e> for f64 {
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        unsafe_raw_call!(env, extract_float, value.raw)
     }
 }
 

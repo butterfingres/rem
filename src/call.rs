@@ -37,12 +37,12 @@ impl<'e> Value<'e> {
     ///
     /// [`IntoLisp`]: trait.IntoLisp.html
     #[inline]
-    pub fn call<A>(self, args: A) -> Result<Value<'e>>
+    pub fn call<A>(self, env: &'e Env, args: A) -> Result<Value<'e>>
     where
         A: IntoLispArgs<'e>,
     {
         // Safety: The returned value is explicitly protected.
-        unsafe { self.call_unprotected(args).map(|v| v.protect()) }
+        unsafe { self.call_unprotected(env, args).map(|v| v.protect(env)) }
     }
 
     /// Like [`call`], except that the returned `Value` is not protected against
@@ -57,11 +57,10 @@ impl<'e> Value<'e> {
     /// [bug #31238]: https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31238
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[allow(unused_unsafe)]
-    pub unsafe fn call_unprotected<A>(self, args: A) -> Result<Value<'e>>
+    pub unsafe fn call_unprotected<A>(self, env: &'e Env, args: A) -> Result<Value<'e>>
     where
         A: IntoLispArgs<'e>,
     {
-        let env = self.env;
         let mut lisp_args = args.into_lisp_args(env)?;
         let lisp_args: &mut [emacs_value] = lisp_args.borrow_mut();
         let ptr = lisp_args.as_mut_ptr();
@@ -109,7 +108,7 @@ impl Env {
         F: IntoLispCallable<'e>,
         A: IntoLispArgs<'e>,
     {
-        func.into_lisp_callable(self)?.call(args)
+        func.into_lisp_callable(self)?.call(self, args)
     }
 
     /// Like [`call`], except that the returned [`Value`] is not protected against
@@ -125,14 +124,19 @@ impl Env {
     /// [bug #31238]: https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31238
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[inline]
-    pub unsafe fn call_unprotected<'e, F, A>(&'e self, func: F, args: A) -> Result<Value<'_>>
+    pub unsafe fn call_unprotected<'e, F, A>(
+        &'e self,
+        env: &'e Env,
+        func: F,
+        args: A,
+    ) -> Result<Value<'_>>
     where
         F: IntoLispCallable<'e>,
         A: IntoLispArgs<'e>,
     {
         let callable = func.into_lisp_callable(self)?;
         // SAFETY: Passthrough to caller.
-        unsafe { callable.call_unprotected(args) }
+        unsafe { callable.call_unprotected(env, args) }
     }
 }
 
@@ -149,7 +153,7 @@ impl GlobalRef {
     where
         A: IntoLispArgs<'e>,
     {
-        self.bind(env).call(args)
+        self.bind(env).call(env, args)
     }
 
     /// Like [`call`], except that the returned [`Value`] is not protected against
@@ -170,7 +174,7 @@ impl GlobalRef {
         A: IntoLispArgs<'e>,
     {
         // SAFETY: Passthrough to caller.
-        unsafe { self.bind(env).call_unprotected(args) }
+        unsafe { self.bind(env).call_unprotected(env, args) }
     }
 }
 

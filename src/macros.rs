@@ -37,7 +37,7 @@ macro_rules! unsafe_raw_call {
 /// [`Value`]: struct.Value.html
 macro_rules! unsafe_raw_call_value {
     ($env:expr, $name:ident $(, $args:expr)*) => {
-        unsafe_raw_call_value_unprotected!($env, $name $(, $args)*).map(|v| v.protect())
+        unsafe_raw_call_value_unprotected!($env, $name $(, $args)*).map(|v| v.protect($env))
     };
 }
 

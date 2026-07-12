@@ -12,8 +12,8 @@ custom_types! {
 }
 
 #[defun]
-fn swap_components(mut v: Value<'_>) -> Result<Value<'_>> {
-    let vec: &mut Vector = unsafe { v.get_mut()? };
+fn swap_components<'e>(env: &'e Env, mut v: Value<'e>) -> Result<Value<'e>> {
+    let vec: &mut Vector = unsafe { v.get_mut(env)? };
     vec.x ^= vec.y;
     vec.y ^= vec.x;
     vec.x ^= vec.y;
@@ -33,24 +33,24 @@ fn make1(x: i64, y: i64) -> Result<Box<Vector>> {
 
 #[defun]
 fn to_list<'e>(env: &'e Env, v: Value<'_>) -> Result<Value<'e>> {
-    v.into_rust::<&Vector>()?;
-    let v: &Vector = v.into_rust()?;
+    v.into_rust::<&Vector>(env)?;
+    let v: &Vector = v.into_rust(env)?;
     let x = v.x.into_lisp(env)?;
     let y = v.y.into_lisp(env)?;
     env.list(&[x, y])
 }
 
 #[defun(user_ptr(direct))]
-fn add(a: Value<'_>, b: Value<'_>) -> Result<Vector> {
-    let a: &Vector = a.into_rust()?;
-    let b: &Vector = b.into_rust()?;
+fn add<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Vector> {
+    let a: &Vector = a.into_rust(env)?;
+    let b: &Vector = b.into_rust(env)?;
     let (x, y) = (b.x + a.x, b.y + a.y);
     Ok(Vector { x, y })
 }
 
 #[defun]
-fn scale_mutably(times: i64, mut v: Value<'_>) -> Result<()> {
-    let v = unsafe { v.get_mut::<Vector>()? };
+fn scale_mutably<'e>(env: &'e Env, times: i64, mut v: Value<'e>) -> Result<()> {
+    let v = unsafe { v.get_mut::<Vector>(env)? };
     v.x *= times;
     v.y *= times;
     Ok(())

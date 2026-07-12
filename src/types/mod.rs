@@ -19,7 +19,7 @@ mod vector;
 ///
 /// [`Value`]: struct.Value.html
 pub trait FromLisp<'e>: Sized {
-    fn from_lisp(value: Value<'e>) -> Result<Self>;
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self>;
 }
 
 // XXX: More accurate would be `CloneToLisp`, `Encode`, but ...
@@ -37,7 +37,7 @@ pub trait IntoLisp<'e> {
 
 impl<'e> FromLisp<'e> for Value<'e> {
     #[inline(always)]
-    fn from_lisp(value: Value<'e>) -> Result<Value<'_>> {
+    fn from_lisp(value: Value<'e>, _: &'e Env) -> Result<Value<'e>> {
         Ok(value)
     }
 }
@@ -50,8 +50,12 @@ impl<'e> IntoLisp<'e> for Value<'e> {
 }
 
 impl<'e, T: FromLisp<'e>> FromLisp<'e> for Option<T> {
-    fn from_lisp(value: Value<'e>) -> Result<Self> {
-        if value.is_not_nil() { Ok(Some(<T as FromLisp>::from_lisp(value)?)) } else { Ok(None) }
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        if value.is_not_nil(env) {
+            Ok(Some(<T as FromLisp>::from_lisp(value, env)?))
+        } else {
+            Ok(None)
+        }
     }
 }
 

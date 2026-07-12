@@ -37,14 +37,14 @@ fn list(env: &Env, n: u16) -> Result<Value> {
 }
 
 #[defun]
-fn value<'e>(function: Value<'e>, arg: Value) -> Result<Value<'e>> {
-    function.call([arg])
+fn value<'e>(env: &'e Env, function: Value<'e>, arg: Value<'e>) -> Result<Value<'e>> {
+    function.call(env, [arg])
 }
 
-#[defun]
-fn mapc_vec(function: Value, vector: rem::Vector) -> Result<()> {
-    for (i, elem) in vector.into_iter().enumerate() {
-        function.call((i, elem))?;
-    }
-    Ok(())
-}
+// #[defun]
+// fn mapc_vec(function: Value, vector: rem::Vector) -> Result<()> {
+//     for (i, elem) in vector.into_iter().enumerate() {
+//         function.call((i, elem))?;
+//     }
+//     Ok(())
+// }

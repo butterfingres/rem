@@ -1,5 +1,5 @@
 use std::cell::{RefCell, Ref, RefMut};
-use std::cmp::PartialEq;
+use std::marker::PhantomData;
 
 use emacs_module::emacs_value;
 
@@ -15,7 +15,8 @@ use crate::{subr, Env, Result, FromLisp, Transfer};
 #[derive(Debug, Clone, Copy)]
 pub struct Value<'e> {
     pub(crate) raw: emacs_value,
-    pub env: &'e Env,
+    _marker: PhantomData<&'e ()>,
+    // pub env: &'e Env,
 }
 
 impl<'e> Value<'e> {
@@ -30,8 +31,8 @@ impl<'e> Value<'e> {
     ///
     /// [`Env`]: struct.Env.html
     #[doc(hidden)]
-    pub unsafe fn new(raw: emacs_value, env: &'e Env) -> Self {
-        Self { raw, env }
+    pub unsafe fn new(raw: emacs_value, _: &'e Env) -> Self {
+        Self { raw, _marker: PhantomData }
     }
 
     /// Protects this value by registering with its [`Env`], effectively "rooting" the underlying
@@ -45,43 +46,39 @@ impl<'e> Value<'e> {
     /// [issue #2]: https://github.com/ubolonton/emacs-module-rs/issues/2
     #[doc(hidden)]
     #[inline]
-    pub fn protect(self) -> Self {
-        let Self { env, raw } = self;
+    pub fn protect(self, env: &'e Env) -> Self {
         if let Some(protected) = &env.protected {
-            protected.borrow_mut().push(unsafe_raw_call_no_exit!(env, make_global_ref, raw));
+            protected.borrow_mut().push(unsafe_raw_call_no_exit!(env, make_global_ref, self.raw));
         }
         self
     }
 
-    pub fn is_not_nil(&self) -> bool {
-        let env = self.env;
+    pub fn is_not_nil(&self, env: &'e Env) -> bool {
         unsafe_raw_call_no_exit!(env, is_not_nil, self.raw)
     }
 
-    #[deprecated(since = "0.20.0", note = "Please use `==` instead")]
     #[allow(clippy::should_implement_trait)]
-    pub fn eq(&self, other: Value<'e>) -> bool {
-        let env = self.env;
+    pub fn eq(&self, env: &'e Env, other: Value<'e>) -> bool {
         // Safety: `other` has the same lifetime.
         unsafe_raw_call_no_exit!(env, eq, self.raw, other.raw)
     }
 
     /// Converts this value into a Rust value of the given type.
     #[inline(always)]
-    pub fn into_rust<T: FromLisp<'e>>(self) -> Result<T> {
-        FromLisp::from_lisp(self)
+    pub fn into_rust<T: FromLisp<'e>>(self, env: &'e Env) -> Result<T> {
+        FromLisp::from_lisp(self, env)
     }
 
     #[inline]
-    pub fn into_ref<T: 'static>(self) -> Result<Ref<'e, T>> {
-        let container: &RefCell<T> = self.into_rust()?;
+    pub fn into_ref<T: 'static>(self, env: &'e Env) -> Result<Ref<'e, T>> {
+        let container: &RefCell<T> = self.into_rust(env)?;
         // TODO: Use .borrow(), we want panics.
         Ok(container.try_borrow()?)
     }
 
     #[inline]
-    pub fn into_ref_mut<T: 'static>(self) -> Result<RefMut<'e, T>> {
-        let container: &RefCell<T> = self.into_rust()?;
+    pub fn into_ref_mut<T: 'static>(self, env: &'e Env) -> Result<RefMut<'e, T>> {
+        let container: &RefCell<T> = self.into_rust(env)?;
         // TODO: Use .borrow_mut(), we want panics.
         Ok(container.try_borrow_mut()?)
     }
@@ -102,25 +99,25 @@ impl<'e> Value<'e> {
     /// very rare situations.
     ///
     /// [`into_rust`]: #method.into_rust
-    pub unsafe fn get_mut<T: Transfer>(&mut self) -> Result<&mut T> {
-        self.get_raw_pointer().map(|r| {
+    pub unsafe fn get_mut<T: Transfer>(&mut self, env: &'e Env) -> Result<&mut T> {
+        self.get_raw_pointer(env).map(|r| {
             // SAFETY: Emacs ensures this is not null/dangling/unaligned. Caller is responsible for
             // aliasing soundness.
             unsafe { &mut *r }
         })
     }
 
-    pub fn car<T: FromLisp<'e>>(self) -> Result<T> {
-        self.env.call(&subr::CAR, (self,))?.into_rust()
+    pub fn car<T: FromLisp<'e>>(self, env: &'e Env) -> Result<T> {
+        env.call(&subr::CAR, (self,))?.into_rust(env)
     }
 
-    pub fn cdr<T: FromLisp<'e>>(self) -> Result<T> {
-        self.env.call(&subr::CDR, (self,))?.into_rust()
+    pub fn cdr<T: FromLisp<'e>>(self, env: &'e Env) -> Result<T> {
+        env.call(&subr::CDR, (self,))?.into_rust(env)
     }
 }
 
-impl<'e> PartialEq for Value<'e> {
-    fn eq(&self, other: &Self) -> bool {
-        unsafe_raw_call_no_exit!(self.env, eq, self.raw, other.raw)
-    }
-}
+// impl<'e> PartialEq for Value<'e> {
+//     fn eq(&self, other: &Self) -> bool {
+//         unsafe_raw_call_no_exit!(self.env, eq, self.raw, other.raw)
+//     }
+// }

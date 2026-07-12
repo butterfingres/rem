@@ -1,23 +1,23 @@
 use super::*;
 
-impl FromLisp<'_> for i64 {
-    fn from_lisp(value: Value<'_>) -> Result<Self> {
-        unsafe_raw_call!(value.env, extract_integer, value.raw)
+impl<'e> FromLisp<'e> for i64 {
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        unsafe_raw_call!(env, extract_integer, value.raw)
     }
 }
 
 macro_rules! int_from_lisp {
     ($name:ident) => {
-        impl FromLisp<'_> for $name {
+        impl<'e> FromLisp<'e> for $name {
             #[cfg(not(feature = "lossy-integer-conversion"))]
-            fn from_lisp(value: Value<'_>) -> Result<$name> {
-                let i: i64 = value.into_rust()?;
+            fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<$name> {
+                let i: i64 = value.into_rust(env)?;
                 Ok(i.try_into()?)
             }
 
             #[cfg(feature = "lossy-integer-conversion")]
-            fn from_lisp(value: Value<'_>) -> Result<$name> {
-                let i: i64 = value.into_rust()?;
+            fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<$name> {
+                let i: i64 = value.into_rust(env)?;
                 Ok(i as $name)
             }
         }
@@ -39,17 +39,17 @@ int_from_lisp!(usize);
 
 macro_rules! nonzero_int_from_lisp {
     ($name:ident($primitive:ident)) => {
-        impl FromLisp<'_> for std::num::$name {
+        impl<'e> FromLisp<'e> for std::num::$name {
             #[cfg(not(feature = "lossy-integer-conversion"))]
-            fn from_lisp(value: Value<'_>) -> Result<std::num::$name> {
-                let i: i64 = value.into_rust()?;
+            fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<std::num::$name> {
+                let i: i64 = value.into_rust(env)?;
                 let i: $primitive = i.try_into()?;
                 Ok(i.try_into()?)
             }
 
             #[cfg(feature = "lossy-integer-conversion")]
-            fn from_lisp(value: Value<'_>) -> Result<std::num::$name> {
-                let i: i64 = value.into_rust()?;
+            fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<std::num::$name> {
+                let i: i64 = value.into_rust(env)?;
                 let i: $primitive = i as $primitive;
                 Ok(i.try_into()?)
             }

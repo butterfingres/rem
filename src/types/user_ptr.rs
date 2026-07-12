@@ -56,8 +56,8 @@ pub trait Transfer: Sized + 'static {
 }
 
 impl<'e, T: Transfer> FromLisp<'e> for &'e T {
-    fn from_lisp(value: Value<'e>) -> Result<Self> {
-        value.get_raw_pointer().map(|r| unsafe { &*r })
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        value.get_raw_pointer(env).map(|r| unsafe { &*r })
     }
 }
 
@@ -135,8 +135,8 @@ impl<'e> Value<'e> {
     ///
     /// [`defun`]: attr.defun.html
     #[inline]
-    pub fn get_user_ptr(self) -> Result<*mut os::raw::c_void> {
-        unsafe_raw_call!(self.env, get_user_ptr, self.raw)
+    pub fn get_user_ptr(self, env: &'e Env) -> Result<*mut os::raw::c_void> {
+        unsafe_raw_call!(env, get_user_ptr, self.raw)
     }
 
     /// Returns the finalizer function associated with this `user-ptr` object.
@@ -146,12 +146,12 @@ impl<'e> Value<'e> {
     ///
     /// [`defun`]: attr.defun.html
     #[inline]
-    pub fn get_user_finalizer(self) -> Result<emacs_finalizer_function> {
-        unsafe_raw_call!(self.env, get_user_finalizer, self.raw)
+    pub fn get_user_finalizer(self, env: &'e Env) -> Result<emacs_finalizer_function> {
+        unsafe_raw_call!(env, get_user_finalizer, self.raw)
     }
 
-    pub(crate) fn get_raw_pointer<T: Transfer>(self) -> Result<*mut T> {
-        match self.get_user_finalizer()? {
+    pub(crate) fn get_raw_pointer<T: Transfer>(self, env: &'e Env) -> Result<*mut T> {
+        match self.get_user_finalizer(env)? {
             // TODO: Consider using dynamic dispatch for finalize, and core::any for type checking.
             //  I'm not sure this is sound.
             Some(fin)
@@ -160,7 +160,7 @@ impl<'e> Value<'e> {
                     finalize::<T> as unsafe extern "C" fn(*mut os::raw::c_void),
                 ) =>
             {
-                let ptr = self.get_user_ptr()?;
+                let ptr = self.get_user_ptr(env)?;
                 Ok(ptr as *mut T)
             }
             _ => {

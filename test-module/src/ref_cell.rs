@@ -1,6 +1,6 @@
 //! Testing RefCell embedded in user-ptr.
 
-use rem::{defun, Result, Value};
+use rem::{defun, Env, Result, Value};
 use std::cell::RefCell;
 
 // TODO: Add tests for Mutex and RwLock, and more tests for RefCell.
@@ -12,8 +12,8 @@ fn wrap(x: i64) -> Result<i64> {
 }
 
 #[defun]
-fn unwrap(r: Value<'_>) -> Result<i64> {
-    let r: &RefCell<i64> = r.into_rust()?;
+fn unwrap(env: &Env, r: Value<'_>) -> Result<i64> {
+    let r: &RefCell<i64> = r.into_rust(env)?;
     Ok(*r.try_borrow()?)
 }
 
@@ -27,7 +27,7 @@ fn inc(x: &mut i64) -> Result<i64> {
 /// Unwrap the integer, call the given function while still holding the reference.
 #[defun]
 #[allow(clippy::trivially_copy_pass_by_ref)] // TODO: Test with sth else not i64.
-fn unwrap_and_call(_: &i64, lambda: Value<'_>) -> Result<()> {
-    lambda.call([])?;
+fn unwrap_and_call(env: &Env, _: &i64, lambda: Value<'_>) -> Result<()> {
+    lambda.call(env, [])?;
     Ok(())
 }

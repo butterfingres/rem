@@ -1,8 +1,6 @@
 #![expect(private_bounds, reason = "the private bounds serve to seal the trait")]
 
 use std::ops::Deref;
-use std::cmp::PartialEq;
-
 use std::sync::OnceLock;
 
 use emacs_module::emacs_value;
@@ -44,8 +42,7 @@ impl GlobalRef {
     /// Creates a new global reference for the given [`Value`].
     ///
     /// [`Value`]: struct.Value.html
-    pub fn new(value: Value) -> Self {
-        let env = value.env;
+    pub fn new<'e>(env: &'e Env, value: Value<'e>) -> Self {
         // TODO: Check whether this really is `no_exit`.
         let raw = unsafe_raw_call_no_exit!(env, make_global_ref, value.raw);
         // NOTE: raw != value.raw
@@ -76,7 +73,11 @@ impl GlobalRef {
 
     /// Returns a copy of this global reference.
     pub fn clone(&self, env: &Env) -> Self {
-        self.bind(env).make_global_ref()
+        self.bind(env).make_global_ref(env)
+    }
+
+    pub fn eq<'e>(&self, env: &'e Env, r: Value<'e>) -> bool {
+        self.bind(env).eq(env, r)
     }
 }
 
@@ -86,8 +87,8 @@ unsafe impl Sync for GlobalRef {}
 
 impl<'e> FromLisp<'e> for GlobalRef {
     #[inline(always)]
-    fn from_lisp(value: Value<'e>) -> Result<Self> {
-        Ok(Self::new(value))
+    fn from_lisp(value: Value<'e>, env: &'e Env) -> Result<Self> {
+        Ok(Self::new(env, value))
     }
 }
 
@@ -103,24 +104,24 @@ impl<'e> Value<'e> {
     ///
     /// [`GlobalRef`]: struct.GlobalRef.html
     #[inline(always)]
-    pub fn make_global_ref(self) -> GlobalRef {
-        GlobalRef::new(self)
+    pub fn make_global_ref(self, env: &'e Env) -> GlobalRef {
+        GlobalRef::new(env, self)
     }
 }
 
-impl<'e> PartialEq<Value<'e>> for GlobalRef {
-    #[inline]
-    fn eq(&self, other: &Value<'e>) -> bool {
-        self.bind(other.env) == *other
-    }
-}
+// impl<'e> PartialEq<Value<'e>> for GlobalRef {
+//     #[inline]
+//     fn eq(&self, other: &Value<'e>) -> bool {
+//         self.bind(other.env) == *other
+//     }
+// }
 
-impl<'e> PartialEq<GlobalRef> for Value<'e> {
-    #[inline]
-    fn eq(&self, other: &GlobalRef) -> bool {
-        other == self
-    }
-}
+// impl<'e> PartialEq<GlobalRef> for Value<'e> {
+//     #[inline]
+//     fn eq(&self, other: &GlobalRef) -> bool {
+//         other == self
+//     }
+// }
 
 /// A [`GlobalRef`] that can be initialized once. This is useful for long-lived values that should
 /// be initialized when the dynamic module is loaded. Typical use cases include "importing"
@@ -143,7 +144,7 @@ impl OnceGlobalRef {
     /// Initializes this global reference with the given function.
     #[doc(hidden)]
     pub fn init<F: FnOnce(&Env) -> Result<Value>>(&self, env: &Env, f: F) -> Result<&GlobalRef> {
-        let g = f(env)?.make_global_ref();
+        let g = f(env)?.make_global_ref(env);
         self.inner.set(g).expect("Cannot initialize a global reference more than once");
         Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
     }
@@ -192,19 +193,19 @@ impl Deref for OnceGlobalRef {
     }
 }
 
-impl<'e> PartialEq<Value<'e>> for OnceGlobalRef {
-    #[inline]
-    fn eq(&self, other: &Value<'e>) -> bool {
-        self.bind(other.env) == *other
-    }
-}
+// impl<'e> PartialEq<Value<'e>> for OnceGlobalRef {
+//     #[inline]
+//     fn eq(&self, other: &Value<'e>) -> bool {
+//         self.bind(other.env) == *other
+//     }
+// }
 
-impl<'e> PartialEq<OnceGlobalRef> for Value<'e> {
-    #[inline]
-    fn eq(&self, other: &OnceGlobalRef) -> bool {
-        other == self
-    }
-}
+// impl<'e> PartialEq<OnceGlobalRef> for Value<'e> {
+//     #[inline]
+//     fn eq(&self, other: &OnceGlobalRef) -> bool {
+//         other == self
+//     }
+// }
 
 trait LazyGlobalRefValue
 where
@@ -260,7 +261,7 @@ where
         env: &'e Env,
         f: F,
     ) -> Result<&'a GlobalRef> {
-        let g = f(env)?.make_global_ref();
+        let g = f(env)?.make_global_ref(env);
         self.inner.set(g).expect("Cannot initialize a global reference more than once");
         Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
     }
@@ -268,6 +269,10 @@ where
     pub fn try_bind<'e, 'g: 'e>(&'g self, env: &'e Env) -> Result<Value<'e>> {
         Ok(if let Some(val) = self.inner.get() { val } else { self.val.initialize(env, self)? }
             .bind(env))
+    }
+
+    pub fn eq<'e>(&self, env: &'e Env, r: Value<'e>) -> bool {
+        self.try_bind(env).map(|l| l.eq(env, r)).unwrap_or_default()
     }
 }
 impl<'e, T> IntoLisp<'e> for &'e LazyGlobalRef<T>
@@ -278,12 +283,12 @@ where
         self.try_bind(env)
     }
 }
-impl<'e, T> PartialEq<Value<'e>> for LazyGlobalRef<T>
-where
-    T: LazyGlobalRefValue,
-{
-    #[inline]
-    fn eq(&self, r: &Value<'e>) -> bool {
-        self.try_bind(r.env).map(|l| l == *r).unwrap_or_default()
-    }
-}
+// impl<'e, T> PartialEq<Value<'e>> for LazyGlobalRef<T>
+// where
+//     T: LazyGlobalRefValue,
+// {
+//     #[inline]
+//     fn eq(&self, r: &Value<'e>) -> bool {
+//         self.try_bind(r.env).map(|l| l == *r).unwrap_or_default()
+//     }
+// }

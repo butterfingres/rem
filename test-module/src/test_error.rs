@@ -9,22 +9,21 @@ use rem::ResultExt;
 use super::MODULE_PREFIX;
 
 #[defun(mod_in_name = false, name = "error:lisp-divide")]
-fn lisp_divide(x: Value<'_>, y: Value<'_>) -> Result<i64> {
+fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
     fn inner(env: &Env, x: i64, y: i64) -> Result<Value<'_>> {
         call!(env, "/", x, y)
     }
 
     fn foo<'e>(env: &'e Env, x: Value<'_>, y: Value<'_>) -> Result<Value<'e>> {
-        inner(env, x.into_rust()?, y.into_rust()?)
+        inner(env, x.into_rust(env)?, y.into_rust(env)?)
     }
 
-    foo(x.env, x, y)?.into_rust()
+    foo(env, x, y)?.into_rust(env)
 }
 
 #[defun(mod_in_name = false, name = "error:get-type")]
-fn get_type(f: Value<'_>) -> Result<Value<'_>> {
-    let env = f.env;
-    match f.call([]) {
+fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
+    match f.call(env, []) {
         Err(error) => {
             if let Some(Signal { symbol, .. }) = error.downcast_ref::<ErrorKind>() {
                 unsafe {
@@ -39,13 +38,12 @@ fn get_type(f: Value<'_>) -> Result<Value<'_>> {
 
 /// Call LAMBDA and return the result. Return the thrown value if EXPECTED-TAG is thrown.
 #[defun(mod_in_name = false, name = "error:catch")]
-fn catch<'e>(expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
-    let env = expected_tag.env;
-    match lambda.call([]) {
+fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
+    match lambda.call(env, []) {
         Err(error) => {
             if let Some(Throw { tag, value }) = error.downcast_ref::<ErrorKind>() {
                 unsafe {
-                    if tag.value(env) == expected_tag {
+                    if tag.value(env).eq(env, expected_tag) {
                         return Ok(value.value(env));
                     }
                 }
@@ -58,8 +56,7 @@ fn catch<'e>(expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
 
 /// Call `apply` on LAMBDA and ARGS, propagating any signaled error.
 #[defun(mod_in_name = false, name = "error:apply")]
-fn apply<'e>(lambda: Value<'e>, args: Value<'e>) -> Result<Value<'e>> {
-    let env = lambda.env;
+fn apply<'e>(env: &'e Env, lambda: Value<'e>, args: Value<'e>) -> Result<Value<'e>> {
     env.call("apply", (lambda, args))
 }
 

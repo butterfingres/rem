@@ -146,16 +146,16 @@ impl LispFunc {
                     // using `get_arg`, which creates a slice each call.
                     bindings.append_all(match access {
                         Access::Owned => quote_spanned! {span=>
-                            let #name = #env.get_arg(#nth).into_rust()?;
+                            let #name = #env.get_arg(#nth).into_rust(#env)?;
                         },
                         // TODO: Support RwLock/Mutex (for the use case of sharing data with
                         // background Rust threads).
                         // TODO: Support direct access.
                         Access::Ref => quote_spanned! {span=>
-                            let #name = &*#env.get_arg(#nth).into_ref()?;
+                            let #name = &*#env.get_arg(#nth).into_ref(#env)?;
                         },
                         Access::RefMut => quote_spanned! {span=>
-                            let #name = &mut *#env.get_arg(#nth).into_ref_mut()?;
+                            let #name = &mut *#env.get_arg(#nth).into_ref_mut(#env)?;
                         },
                     });
                     args.append_all(quote_spanned!(span=> #name,));

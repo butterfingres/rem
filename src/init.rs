@@ -59,7 +59,7 @@ fn debugging() -> bool {
 
 fn check_gc_bug_31238(env: &Env) -> Result<()> {
     let version = env.call("default-value", [env.intern("emacs-version")?])?;
-    let fixed = env.call("version<=", ("27", version))?.is_not_nil();
+    let fixed = env.call("version<=", ("27", version))?.is_not_nil(env);
     if debugging() {
         env.call("set", (env.intern("module-rs-disable-gc-bug-31238-workaround")?, fixed))?;
     }
