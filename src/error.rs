@@ -216,9 +216,7 @@ impl Env {
             ErrorKind::WrongNumberOfArguments { found } => (|| {
                 self.signal_internal(&symbol::WRONG_NUMBER_OF_ARGUMENTS, {
                     // we don't know the function
-                    let data =
-                        self.list((&symbol::NIL, *found)).unwrap_or(symbol::NIL.try_bind(self)?);
-                    data
+                    self.list((&symbol::NIL, *found)).unwrap_or(symbol::NIL.try_bind(self)?)
                 })
             })()
             .unwrap_or_else(|_| panic!("Failed to signal {}", err)),

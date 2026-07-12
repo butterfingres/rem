@@ -91,49 +91,6 @@ impl<'e> IntoLisp<'e> for Vector<'e> {
     }
 }
 
-// /// An iterator over the elements of a [`Vector`], as [`Value`] structs.
-// ///
-// /// [`Vector`]: struct.Vector.html
-// /// [`Value`]: struct.Value.html
-// pub struct IntoIter<'e> {
-//     vector: Vector<'e>,
-//     i: usize,
-// }
-
-// impl<'e> Iterator for IntoIter<'e> {
-//     type Item = Value<'e>;
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let i = self.i;
-//         if i >= self.vector.len {
-//             None
-//         } else {
-//             self.i += 1;
-//             Some(self.vector.get(i).unwrap_or_else(|err| {
-//                 panic!("Unable to get Emacs vector's element at index {}: {}", i, err)
-//             }))
-//         }
-//     }
-
-//     fn size_hint(&self) -> (usize, Option<usize>) {
-//         let remaining = self.vector.len - self.i;
-//         (remaining, Some(remaining))
-//     }
-// }
-
-// impl<'e> ExactSizeIterator for IntoIter<'e> {}
-
-// impl<'e> IntoIterator for Vector<'e> {
-//     type Item = Value<'e>;
-
-//     type IntoIter = IntoIter<'e>;
-
-//     #[inline]
-//     fn into_iter(self) -> Self::IntoIter {
-//         IntoIter { vector: self, i: 0 }
-//     }
-// }
-
 impl Env {
     pub fn make_vector<'e, T: IntoLisp<'e>>(&'e self, length: usize, init: T) -> Result<Vector> {
         let value = self.call(&subr::MAKE_VECTOR, (length, init))?;
