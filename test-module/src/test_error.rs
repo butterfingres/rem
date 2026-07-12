@@ -2,11 +2,9 @@
 
 use std::fs;
 
-use rem::{defun, CallEnv, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 use rem::ErrorKind;
 use rem::ResultExt;
-
-use super::MODULE_PREFIX;
 
 #[defun(name = LispDivide)]
 fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
@@ -75,12 +73,6 @@ fn signal(env: &Env, symbol: Value, message: String) -> Result<()> {
     env.signal(symbol, (message,))
 }
 
-fn parse_arg(env: &CallEnv) -> Result<String> {
-    let i: i64 = env.parse_arg(0)?;
-    let s: String = env.parse_arg(i as usize)?;
-    Ok(s)
-}
-
 rem::use_symbols! {
     EMRS_FILE_ERROR => "emrs-file-error",
     EMACS_MODULE_RS_TEST_ERROR => "emacs-module-rs-test-error",
@@ -92,12 +84,6 @@ pub fn init(env: &Env) -> Result<()> {
     env.define_error(&EMRS_FILE_ERROR, "File error", [])?;
     env.define_error(&EMACS_MODULE_RS_TEST_ERROR, "Hello", [RUST_ERROR.try_bind(env)?])?;
     env.define_error(&ERROR_DEFINED_WITHOUT_PARENT, "Error", [])?;
-
-    rem::__export_functions! {
-        env, format!("{}error:", *MODULE_PREFIX), {
-            "parse-arg"   => (parse_arg   , 2..5),
-        }
-    }
 
     #[defun(name = SignalCustom)]
     fn signal_custom(env: &Env) -> Result<()> {

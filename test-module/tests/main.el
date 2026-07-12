@@ -148,7 +148,6 @@
                 :type 'no-catch))
 
 (ert-deftest error::panic ()
-  (should-error (t/error:parse-arg 5 "1") :type 'rust-panic)
   (should (equal (t/get-error (t/error:apply #'t/error:panic '("abc")))
                  '(rust-panic "abc"))))
 

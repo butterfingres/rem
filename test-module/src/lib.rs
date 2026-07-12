@@ -2,7 +2,7 @@
 
 use std::{env, panic, sync::LazyLock};
 
-use rem::{defun, CallEnv, Env, IntoLisp, Result, Value};
+use rem::{defun, Env, Lambda, IntoLisp, Result, Value};
 
 #[macro_use]
 mod macros;
@@ -87,26 +87,25 @@ fn wrap_string(s: String) -> Result<Box<StringWrapper>> {
 }
 
 #[defun(name = MakeDec)]
-fn make_dec(env: &Env) -> Result<Value<'_>> {
-    fn dec(env: &CallEnv) -> Result<Value<'_>> {
-        let i: i64 = env.parse_arg(0)?;
-        (i - 1).into_lisp(env)
+fn make_dec(env: &Env) -> Result<Lambda<'_>> {
+    #[defun(name = Dec)]
+    fn dec(i: i64) -> Result<i64> {
+        Ok(i - 1)
     }
-    rem::lambda!(env, dec, 1..1, "decrement")
+    env.lambda(&Dec, Some(c"decrement"))
 }
 
 #[defun(name = MakeIncAndPlus)]
 fn make_inc_and_plus(env: &Env) -> Result<Value<'_>> {
-    fn inc(env: &CallEnv) -> Result<Value<'_>> {
-        let i: i64 = env.parse_arg(0)?;
-        (i + 1).into_lisp(env)
+    #[defun(name = Inc)]
+    fn inc(i: i64) -> Result<i64> {
+        Ok(i + 1)
     }
 
-    fn plus(env: &CallEnv) -> Result<Value<'_>> {
-        let x: i64 = env.parse_arg(0)?;
-        let y: i64 = env.parse_arg(1)?;
-        (x + y).into_lisp(env)
+    #[defun(name = Plus)]
+    fn plus(x: i64, y: i64) -> Result<i64> {
+        Ok(x + y)
     }
 
-    env.call("cons", &[rem::lambda!(env, inc, 1..1, "increment")?, rem::lambda!(env, plus, 2..2)?])
+    env.call("cons", (env.lambda(&Inc, Some(c"increment"))?, env.lambda(&Plus, Some(c""))?))
 }

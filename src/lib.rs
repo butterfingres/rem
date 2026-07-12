@@ -37,7 +37,7 @@ pub use self::{
     value::Value,
     global::{GlobalRef, OnceGlobalRef, LazyGlobalRef, Symbol, Fn},
     types::{FromLisp, IntoLisp, Transfer, Vector},
-    func::CallEnv,
+    func::{CallEnv, Lambda},
     error::{ErrorKind, Result, ResultExt, Error},
 };
 

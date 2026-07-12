@@ -1,18 +1,13 @@
-use rem::{defun, CallEnv, Env, IntoLisp, Result, Value};
-use rem::func::Manage;
-
-use super::MODULE_PREFIX;
+use rem::{defun, Env, IntoLisp, Result, Value};
 
 fn using_fset(env: &Env) -> Result<()> {
-    make_prefix!(prefix, *MODULE_PREFIX);
-
-    fn sum_and_diff(env: &CallEnv) -> Result<Value<'_>> {
-        let x: i64 = env.parse_arg(0)?;
-        let y: i64 = env.parse_arg(1)?;
+    #[defun(name = SumAndDiff)]
+    fn sum_and_diff<'e>(env: &'e Env, x: i64, y: i64) -> Result<Value<'e>> {
         env.list(&[(x + y).into_lisp(env)?, (x - y).into_lisp(env)?])
     }
 
-    env.fset(prefix!("sum-and-diff"), rem::lambda!(env, sum_and_diff, 2..2)?)?;
+    env.lambda(&SumAndDiff, None)?.fset(env, "t/sum-and-diff")?;
+    // env.fset(prefix!("sum-and-diff"), rem::lambda!(env, sum_and_diff, 2..2)?)?;
 
     Ok(())
 }
@@ -58,6 +53,11 @@ fn copy_string_contents(env: &Env, v: Value, size: usize) -> Result<String> {
     Ok(String::from_utf8_lossy(s).to_string())
 }
 
+#[defun(name = Sum)]
+fn sum(x: i64, y: i64) -> Result<i64> {
+    Ok(x + y)
+}
+
 pub fn init(env: &Env) -> Result<()> {
     using_fset(env)?;
     env.lambda(
@@ -83,18 +83,7 @@ pub fn init(env: &Env) -> Result<()> {
     )?
     .fset(env, "t/ignore-args")?;
     env.lambda(&CopyStringContents, None)?.fset(env, "t/copy-string-contents")?;
-
-    fn sum(env: &CallEnv) -> Result<i64> {
-        let x: i64 = env.parse_arg(0)?;
-        let y: i64 = env.parse_arg(1)?;
-        Ok(x + y)
-    }
-
-    rem::__export_functions! {
-        env, *MODULE_PREFIX, {
-            "sum" => (sum, 2..2),
-        }
-    }
+    env.lambda(&Sum, None)?.fset(env, "t/sum")?;
 
     Ok(())
 }

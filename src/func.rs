@@ -14,83 +14,6 @@ use {
     emacs_module::{emacs_env, emacs_value, EmacsSubr, emacs_variadic_function},
 };
 
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __export_functions {
-    // Cut trailing comma in top-level.
-    ($env:expr, $prefix:expr, $mappings:tt,) => {
-        $crate::__export_functions!($env, $prefix, $mappings)
-    };
-    // Cut trailing comma in mappings.
-    ($env:expr, $prefix:expr, {
-        $( $name:expr => $declaration:tt ),+,
-    }) => {
-        $crate::__export_functions!($env, $prefix, {
-            $( $name => $declaration ),*
-        })
-    };
-    // Expand each mapping.
-    ($env:expr, $prefix:expr, {
-        $( $name:expr => $declaration:tt ),*
-    }) => {
-        {
-            use $crate::func::Manage;
-            $( $crate::__export_functions!(decl, $env, $prefix, $name, $declaration)?; )*
-        }
-    };
-
-    // Cut trailing comma in declaration.
-    (decl, $env:expr, $prefix:expr, $name:expr, ($func:path, $( $opt:expr ),+,)) => {
-        $crate::__export_functions!(decl, $env, $prefix, $name, ($func, $( $opt ),*))
-    };
-    // Create a function and set a symbol to it.
-    (decl, $env:expr, $prefix:expr, $name:expr, ($func:path, $( $opt:expr ),+)) => {
-        $env.fset(
-            &format!("{}{}", $prefix, $name),
-            $crate::lambda!($env, $func, $($opt),*)?
-        )
-    };
-}
-
-// TODO: Support closures, storing them in the data pointer, using a single handler to dispatch.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! lambda {
-    // Default doc string is empty.
-    ($env:expr, $func:path, $arities:expr $(,)*) => {
-        $crate::lambda!($env, $func, $arities, "")
-    };
-
-    // Declare a wrapper function.
-    ($env:expr, $func:path, $arities:expr, $doc:expr $(,)*) => {{
-        use $crate::func::HandleCall;
-        use $crate::func::Manage;
-        // TODO: Generate identifier from $func.
-        unsafe extern "C" fn extern_lambda(
-            env: *mut $crate::raw::emacs_env,
-            nargs: isize,
-            args: *mut $crate::raw::emacs_value,
-            _data: *mut ::std::os::raw::c_void,
-        ) -> $crate::raw::emacs_value {
-            let env = $crate::Env::new(env);
-            let env = $crate::CallEnv::new(env, nargs, args);
-            env.handle_call($func)
-        }
-
-        // Safety: The raw pointer is simply ignored.
-        unsafe { $env.make_function(extern_lambda, $arities, $doc, ::std::ptr::null_mut()) }
-    }};
-}
-
-#[deprecated(since = "0.7.0", note = "Please use `rem::lambda!` instead")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! emacs_lambda {
-    ($($inner:tt)*) => {
-        $crate::lambda!($($inner)*)
-    };
-}
-
 pub trait Manage {
     unsafe fn make_function<T: Into<Vec<u8>>>(
         &self,
@@ -257,6 +180,11 @@ impl<'e> Lambda<'e> {
     pub fn fset(&self, env: &'e Env, name: &str) -> Result<()> {
         env.call(&subr::FSET, (env.intern(name)?, self.0))?;
         Ok(())
+    }
+}
+impl<'e> IntoLisp<'e> for Lambda<'e> {
+    fn into_lisp(self, _: &'e Env) -> Result<Value<'e>> {
+        Ok(self.0)
     }
 }
 
