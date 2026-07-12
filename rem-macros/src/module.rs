@@ -104,7 +104,6 @@ impl Module {
         let env = quote!(env);
         let separator = &self.opts.separator;
         let hook = &self.def.sig.ident;
-        let init_fns = util::init_fns_path();
         let prefix = util::prefix_path();
         let feature = match &self.opts.name {
             Name::Crate => quote!(::rem::lisp_pkg!()),
@@ -125,21 +124,11 @@ impl Module {
                 *prefix = ::rem::const_concat!(#defun_prefix, #separator);
             }
         };
-        let export_lisp_funcs = quote! {
-            {
-                let funcs = #init_fns.try_lock()
-                    .expect("Failed to acquire a read lock on map of initializers");
-                for func in funcs.iter() {
-                    func(#env)?;
-                }
-            }
-        };
         quote! {
             #[allow(non_snake_case)]
             fn #init(#env: &::rem::Env) -> ::rem::Result<::rem::Value<'_>> {
                 const FEATURE: &str = #feature;
                 #set_prefix
-                #export_lisp_funcs
                 #hook(#env)?;
                 #env.provide(&FEATURE)
             }

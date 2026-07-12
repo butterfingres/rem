@@ -36,10 +36,6 @@ pub fn doc(fn_item: &ItemFn) -> String {
     doc.join("\n")
 }
 
-pub fn init_fns_path() -> TokenStream2 {
-    quote!(::rem::init::__INIT_FNS__)
-}
-
 pub fn prefix_path() -> TokenStream2 {
     quote!(::rem::init::__PREFIX__)
 }

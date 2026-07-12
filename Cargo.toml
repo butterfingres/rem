@@ -26,7 +26,6 @@ resolver = "3"
 [dependencies]
 thiserror = "2.0"
 anyhow = "1.0"
-ctor = "0.6"
 emacs_module = { version = "0.21.0" }
 rem-macros = { path = "rem-macros", version = "0.17.0" }
 

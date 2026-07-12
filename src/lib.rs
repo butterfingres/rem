@@ -70,5 +70,4 @@ pub mod raw {
 #[doc(hidden)]
 pub mod deps {
     pub use rem_macros;
-    pub use ctor;
 }
