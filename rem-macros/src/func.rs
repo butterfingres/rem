@@ -89,27 +89,18 @@ impl FromMeta for UserPtr {
     }
 
     fn from_list(outer: &[NestedMeta]) -> darling::Result<UserPtr> {
-        match outer.len() {
-            0 => Err(darling::Error::too_few_items(1)),
-            1 => {
-                let elem = &outer[0];
-                match elem {
-                    NestedMeta::Meta(syn::Meta::Path(path)) => {
-                        match path.segments.last().unwrap().ident.to_string().as_ref() {
-                            "refcell" => Ok(UserPtr::RefCell),
-                            "mutex" => Ok(UserPtr::Mutex),
-                            "rwlock" => Ok(UserPtr::RwLock),
-                            "direct" => Ok(UserPtr::Direct),
-                            _ => {
-                                Err(darling::Error::custom("Unknown kind of embedding")
-                                    .with_span(path))
-                            }
-                        }
-                    }
-                    _ => Err(darling::Error::custom("Expected an identifier").with_span(elem)),
+        match outer {
+            [NestedMeta::Meta(syn::Meta::Path(path))] => {
+                match path.segments.last().unwrap().ident.to_string().as_ref() {
+                    "refcell" => Ok(UserPtr::RefCell),
+                    "mutex" => Ok(UserPtr::Mutex),
+                    "rwlock" => Ok(UserPtr::RwLock),
+                    "direct" => Ok(UserPtr::Direct),
+                    _ => Err(darling::Error::custom("Unknown kind of embedding").with_span(path)),
                 }
             }
-            _ => Err(darling::Error::too_many_items(1)),
+            [elem] => Err(darling::Error::custom("Expected an identifier").with_span(elem)),
+            _ => Err(darling::Error::too_few_items(1)),
         }
     }
 }
