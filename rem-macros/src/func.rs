@@ -140,17 +140,17 @@ impl LispFunc {
                     // TODO: Create a slice of `emacs_value` once and iterate through it, instead of
                     // using `get_arg`, which creates a slice each call.
                     bindings.append_all(match access {
-                        Access::Owned => quote_spanned! {span=>
-                            let #name = #vals[#nth].into_rust(#env)?;
+                        Access::Owned => quote_spanned! {
+                            span => let #name = #vals.get(#nth).ok_or(::rem::ErrorKind::WrongNumberOfArguments { found: #vals.len() })?.into_rust(#env)?;
                         },
                         // TODO: Support RwLock/Mutex (for the use case of sharing data with
                         // background Rust threads).
                         // TODO: Support direct access.
-                        Access::Ref => quote_spanned! {span=>
-                            let #name = &*#vals[#nth].into_ref(#env)?;
+                        Access::Ref => quote_spanned! {
+                            span => let #name = &*#vals.get(#nth).ok_or(::rem::ErrorKind::WrongNumberOfArguments { found: #vals.len() })?.into_ref(#env)?;
                         },
                         Access::RefMut => quote_spanned! {span=>
-                            let #name = &mut *#vals[#nth].into_ref_mut(#env)?;
+                            let #name = &mut *#vals.get(#nth).ok_or(::rem::ErrorKind::WrongNumberOfArguments { found: #vals.len() })?.into_ref_mut(#env)?;
                         },
                     });
                     args.append_all(quote_spanned!(span=> #name,));

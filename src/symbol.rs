@@ -29,6 +29,7 @@ use_symbols! {
     RUST_ERROR => "rust-error",
     RUST_PANIC => "rust-panic",
     RUST_WRONG_TYPE_USER_PTR => "rust-wrong-type-user-ptr",
+    WRONG_NUMBER_OF_ARGUMENTS => "wrong-number-of-arguments",
 }
 
 pub trait IntoLispSymbol<'e> {

@@ -33,10 +33,10 @@ fn unwrap_and_call(env: &Env, _: &i64, lambda: Value<'_>) -> Result<()> {
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&Wrap, None)?.fset(env, "t/wrap")?;
-    env.lambda(&Unwrap, None)?.fset(env, "t/unwrap")?;
-    env.lambda(&Inc, None)?.fset(env, "t/inc")?;
-    env.lambda(&UnwrapAndCall, None)?.fset(env, "t/unwrap-and-call")?;
+    env.lambda(&Wrap, None)?.fset(env, "t/ref-cell-wrap")?;
+    env.lambda(&Unwrap, None)?.fset(env, "t/ref-cell-unwrap")?;
+    env.lambda(&Inc, None)?.fset(env, "t/ref-cell-inc")?;
+    env.lambda(&UnwrapAndCall, None)?.fset(env, "t/ref-cell-unwrap-and-call")?;
 
     Ok(())
 }

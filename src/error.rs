@@ -72,6 +72,9 @@ pub enum ErrorKind {
     /// ```
     #[error("expected: {expected}")]
     WrongTypeUserPtr { expected: &'static str },
+
+    #[error("wrong number of arguments: {found}")]
+    WrongNumberOfArguments { found: usize },
 }
 
 /// A specialized [`Result`] type for Emacs's dynamic modules.
@@ -146,7 +149,7 @@ impl Env {
                     unsafe { self.handle_known(err) }
                 }
                 _ => self
-                    .signal_internal(&symbol::RUST_ERROR, &format!("{}", error))
+                    .signal_internal_message(&symbol::RUST_ERROR, &format!("{}", error))
                     .unwrap_or_else(|_| panic!("Failed to signal {}", error)),
             },
         }
@@ -178,7 +181,7 @@ impl Env {
                 if let Err(error) = m {
                     m = Ok(format!("{:#?}", error));
                 }
-                self.signal_internal(&symbol::RUST_PANIC, &m.expect("Logic error"))
+                self.signal_internal_message(&symbol::RUST_PANIC, &m.expect("Logic error"))
                     .expect("Fail to signal panic")
             }
         }
@@ -208,18 +211,31 @@ impl Env {
                 unsafe { self.non_local_exit_throw(tag.raw, value.raw) }
             }
             ErrorKind::WrongTypeUserPtr { .. } => self
-                .signal_internal(&symbol::RUST_WRONG_TYPE_USER_PTR, &format!("{}", err))
+                .signal_internal_message(&symbol::RUST_WRONG_TYPE_USER_PTR, &format!("{}", err))
                 .unwrap_or_else(|_| panic!("Failed to signal {}", err)),
+            ErrorKind::WrongNumberOfArguments { found } => (|| {
+                self.signal_internal(&symbol::WRONG_NUMBER_OF_ARGUMENTS, {
+                    // we don't know the function
+                    let data =
+                        self.list((&symbol::NIL, *found)).unwrap_or(symbol::NIL.try_bind(self)?);
+                    data
+                })
+            })()
+            .unwrap_or_else(|_| panic!("Failed to signal {}", err)),
         }
     }
 
-    fn signal_internal(
+    fn signal_internal_message(
         &self,
         symbol: &LazyGlobalRef<Symbol>,
         message: &str,
     ) -> Result<emacs_value> {
         let message = message.into_lisp(self)?;
         let data = self.list([message])?;
+        self.signal_internal(symbol, data)
+    }
+
+    fn signal_internal(&self, symbol: &LazyGlobalRef<Symbol>, data: Value) -> Result<emacs_value> {
         unsafe { Ok(self.non_local_exit_signal(symbol.try_bind(self)?.raw, data.raw)) }
     }
 

@@ -69,7 +69,7 @@
            (cadr (should-error (t/u64-overflow) :type 'rust-error))))
   (should (string=
            "out of range"
-           (cadr (should-error (t/identity-i8 128) :type 'rust-error))))
+           (should-error (t/identity-i8 128) :type 'rust-error))) 
   (should (string=
            "out of range"
            (cadr (should-error (t/identity-u8 -1) :type 'rust-error)))))

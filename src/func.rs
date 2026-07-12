@@ -244,7 +244,7 @@ where
     let env = unsafe { Env::new(env) };
     handle_call(&env, |env| {
         let len = usize::try_from(nargs).unwrap_or_default();
-        let args = unsafe { slice::from_raw_parts(args.cast(), len) };
+        let args = if len == 0 { &[] } else { unsafe { slice::from_raw_parts(args.cast(), len) } };
 
         let f = data.cast::<F>();
         let f = unsafe { f.as_ref() }.unwrap();
