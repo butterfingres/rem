@@ -121,6 +121,8 @@ impl Env {
         &'e self,
         pipe_process: Value<'e>,
     ) -> Result<impl std::io::Write + Debug + Send + Sync + use<>> {
+        // TODO: check the size of `env`, this is currently unsafe
+
         let raw_fd = unsafe_raw_call!(self, open_channel, pipe_process.raw)?;
 
         #[cfg(target_os = "windows")]
