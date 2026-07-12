@@ -43,7 +43,7 @@ fn t(env: &Env) -> Result<()> {
     test_lifetime::init(env)?;
     test_vector::init(env)?;
     env.lambda(&Inc, None)?.fset(env, "t/inc")?;
-    env.lambda(&Identity, None)?.fset(env, "t/identity")?;
+    env.lambda(&Identity, Some(c"Return the input (not a copy)."))?.fset(env, "t/identity")?;
     env.lambda(&ToUppercase, None)?.fset(env, "t/to-uppercase")?;
     env.lambda(&WrapString, None)?.fset(env, "t/wrap-string")?;
     env.lambda(&MakeDec, None)?.fset(env, "t/make-dec")?;
@@ -64,7 +64,6 @@ fn inc(x: i64) -> Result<i64> {
 
 // Docstring below, without space.
 #[defun(name = Identity)]
-///Return the input (not a copy).
 fn identity(x: Value) -> Result<Value> {
     Ok(x)
 }

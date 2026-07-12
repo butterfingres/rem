@@ -78,8 +78,8 @@
   (let ((x "x"))
     (should (eq (t/identity x) x))
     (should (eq (t/identity 5) 5))
-    (should (string-match-p (regexp-quote "Return the input (not a copy).")
-                            (documentation #'t/identity) ))))
+    (should (string= "Return the input (not a copy)."
+                     (documentation #'t/identity)))))
 
 (ert-deftest conversion::string ()
   (should (equal (t/to-uppercase "abc") "ABC"))
