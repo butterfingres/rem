@@ -48,10 +48,10 @@ fn classify_position(env: &Env, position: Value<'_>) -> Result<String> {
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&ValueEq, None)?.fset(env, "eq:value-eq")?;
-    env.lambda(&GlobalRefEq, None)?.fset(env, "eq:global-ref-eq")?;
-    env.lambda(&NewString, None)?.fset(env, "eq:new-string")?;
-    env.lambda(&ClassifyPosition, None)?.fset(env, "eq:classify-position")?;
+    env.lambda(&ValueEq, None)?.fset(env, "t/eq:value-eq")?;
+    env.lambda(&GlobalRefEq, None)?.fset(env, "t/eq:global-ref-eq")?;
+    env.lambda(&NewString, None)?.fset(env, "t/eq:new-string")?;
+    env.lambda(&ClassifyPosition, None)?.fset(env, "t/eq:classify-position")?;
 
     Ok(())
 }

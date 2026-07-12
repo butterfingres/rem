@@ -43,7 +43,7 @@ fn identity_u8(i: u8) -> Result<u8> {
 
 #[defun(name = U64Overflow)]
 fn u64_overflow() -> Result<u64> {
-    Ok(u64::max_value())
+    Ok(u64::MAX)
 }
 
 #[defun(name = IgnoreArgs)]
