@@ -60,12 +60,28 @@ fn copy_string_contents(env: &Env, v: Value, size: usize) -> Result<String> {
 
 pub fn init(env: &Env) -> Result<()> {
     using_fset(env)?;
-    env.lambda(&ToLowercaseOrNil, None)?.fset(env, "t/to-lowercase-or-nil")?;
+    env.lambda(
+        &ToLowercaseOrNil,
+        Some(
+            c"Convert INPUT to lowercase if non-nil.
+
+(fn INPUT)",
+        ),
+    )?
+    .fset(env, "t/to-lowercase-or-nil")?;
     env.lambda(&Match, None)?.fset(env, "t/match")?;
     env.lambda(&IdentityI8, None)?.fset(env, "t/identity-i8")?;
     env.lambda(&IdentityU8, None)?.fset(env, "t/identity-u8")?;
     env.lambda(&U64Overflow, None)?.fset(env, "t/u64-overflow")?;
-    env.lambda(&IgnoreArgs, None)?.fset(env, "t/ignore-args")?;
+    env.lambda(
+        &IgnoreArgs,
+        Some(
+            c"Ignore all arguments.
+
+(fn _ _)",
+        ),
+    )?
+    .fset(env, "t/ignore-args")?;
     env.lambda(&CopyStringContents, None)?.fset(env, "t/copy-string-contents")?;
 
     fn sum(env: &CallEnv) -> Result<i64> {

@@ -36,7 +36,7 @@ fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     }
 }
 
-/// Call LAMBDA and return the result. Return the thrown value if EXPECTED-TAG is thrown.
+///
 #[defun(name = Catch)]
 fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
     match lambda.call(env, []) {
@@ -106,7 +106,15 @@ pub fn init(env: &Env) -> Result<()> {
 
     env.lambda(&LispDivide, None)?.fset(env, "t/error:lisp-divide")?;
     env.lambda(&GetType, None)?.fset(env, "t/error:get-type")?;
-    env.lambda(&Catch, None)?.fset(env, "t/error:catch")?;
+    env.lambda(
+        &Catch,
+        Some(
+            c"Call LAMBDA and return the result. Return the thrown value if EXPECTED-TAG is thrown.
+
+(fn EXPECTED-TAG LAMBDA)",
+        ),
+    )?
+    .fset(env, "t/error:catch")?;
     env.lambda(&Apply, None)?.fset(env, "t/error:apply")?;
     env.lambda(&ReadFile, None)?.fset(env, "t/read-file")?;
     env.lambda(&Panic, None)?.fset(env, "t/error:panic")?;
