@@ -26,4 +26,5 @@ use_functions! {
     MAKE_VECTOR => "make-vector",
     LIST => "list",
     MESSAGE => "message",
+    FSET => "fset",
 }

@@ -4,14 +4,14 @@
 //! [`defun`]: attr.defun.html
 
 use {
-    crate::{Env, Value, Result, FromLisp, IntoLisp},
+    crate::{Env, Value, Result, FromLisp, IntoLisp, subr},
     std::{
         os, panic,
-        ffi::{c_void, CString},
+        ffi::{c_void, CStr, CString},
         ops::{Deref, Range},
-        slice,
+        ptr, slice,
     },
-    emacs_module::{emacs_env, emacs_value, EmacsSubr},
+    emacs_module::{emacs_env, emacs_value, EmacsSubr, emacs_variadic_function},
 };
 
 #[doc(hidden)]
@@ -226,8 +226,10 @@ where
 }
 
 pub trait LispFn<'e> {
-    type Output: IntoLisp<'e>;
-    fn call(&self, _: &'e Env, args: &[Value<'e>]) -> Result<Self::Output>;
+    const MIN_ARITY: usize;
+    const MAX_ARITY: Option<usize>;
+
+    fn call(&self, _: &'e Env, args: &[Value<'e>]) -> Result<Value<'e>>;
 }
 #[doc(hidden)]
 pub unsafe extern "C" fn extern_lambda<F>(
@@ -248,4 +250,36 @@ where
         let f = unsafe { f.as_ref() }.unwrap();
         f.call(env, args)
     })
+}
+
+pub struct Lambda<'e>(Value<'e>);
+impl<'e> Lambda<'e> {
+    pub fn fset(&self, env: &'e Env, name: &str) -> Result<()> {
+        env.call(&subr::FSET, (name, self.0))?;
+        Ok(())
+    }
+}
+
+impl Env {
+    pub fn lambda<'e, F>(
+        &'e self,
+        f: &'static F,
+        docstring: Option<&'static CStr>,
+    ) -> Result<Lambda<'e>>
+    where
+        F: for<'env> LispFn<'env>,
+    {
+        unsafe_raw_call_value!(
+            self,
+            make_function,
+            F::MIN_ARITY.try_into().unwrap(),
+            F::MAX_ARITY
+                .map(|max| max.try_into().unwrap())
+                .unwrap_or(emacs_variadic_function.try_into().unwrap()),
+            Some(extern_lambda::<F>),
+            docstring.map(CStr::as_ptr).unwrap_or_default(),
+            ptr::from_ref(f).cast_mut().cast()
+        )
+        .map(Lambda)
+    }
 }

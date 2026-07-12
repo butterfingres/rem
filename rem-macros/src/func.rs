@@ -1,11 +1,11 @@
 use std::ops::Range;
 
-use darling::{ast::NestedMeta, FromMeta};
+use darling::{FromMeta, ast::NestedMeta};
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{quote, quote_spanned, TokenStreamExt};
+use quote::{TokenStreamExt, quote, quote_spanned};
 use syn::{
-    self, spanned::Spanned, FnArg, Signature, Ident, ItemFn, Pat, PatType, Type, TypeReference,
-    ReturnType, TypePath,
+    self, FnArg, Ident, ItemFn, Pat, PatType, ReturnType, Signature, Type, TypePath, TypeReference,
+    spanned::Spanned,
 };
 
 use crate::util::{self, report};
@@ -56,16 +56,10 @@ enum UserPtr {
 
 #[derive(Debug, FromMeta)]
 struct FuncOpts {
-    /// Name of the function in Lisp, excluding prefix. `None` means sanitized Rust name is used.
-    #[darling(default)]
-    name: Option<String>,
-    /// Whether module path should be used to construct the full Lisp name. `None` means using
-    /// crate-wide config.
-    #[darling(default)]
-    mod_in_name: Option<bool>,
     /// How the return value should be embedded in Lisp as a `user-ptr`. `None` means no embedding.
     #[darling(default)]
     user_ptr: Option<UserPtr>,
+    struct_name: Ident,
 }
 
 #[derive(Debug)]
@@ -118,12 +112,12 @@ impl LispFunc {
 
     pub fn render(&self) -> TokenStream2 {
         let define_exporter = self.gen_exporter();
-        let register_exporter = self.gen_registrator();
+        // let register_exporter = self.gen_registrator();
         let define_func = &self.def;
         quote! {
             #define_func
             #define_exporter
-            #register_exporter
+            // #register_exporter
         }
     }
 
@@ -133,6 +127,7 @@ impl LispFunc {
         // Inlined references do not live long enough. We need bindings for them.
         let mut bindings = TokenStream2::new();
         let env = Ident::new("env", Span::call_site());
+        let vals = Ident::new("vals", Span::call_site());
         for arg in &self.args {
             match *arg {
                 Arg::Env { span } => {
@@ -146,16 +141,16 @@ impl LispFunc {
                     // using `get_arg`, which creates a slice each call.
                     bindings.append_all(match access {
                         Access::Owned => quote_spanned! {span=>
-                            let #name = #env.get_arg(#nth).into_rust(#env)?;
+                            let #name = #vals[#nth].into_rust(#env)?;
                         },
                         // TODO: Support RwLock/Mutex (for the use case of sharing data with
                         // background Rust threads).
                         // TODO: Support direct access.
                         Access::Ref => quote_spanned! {span=>
-                            let #name = &*#env.get_arg(#nth).into_ref(#env)?;
+                            let #name = &*#vals[#nth].into_ref(#env)?;
                         },
                         Access::RefMut => quote_spanned! {span=>
-                            let #name = &mut *#env.get_arg(#nth).into_ref_mut(#env)?;
+                            let #name = &mut *#vals[#nth].into_ref_mut(#env)?;
                         },
                     });
                     args.append_all(quote_spanned!(span=> #name,));
@@ -185,13 +180,24 @@ impl LispFunc {
             ::rem::IntoLisp::into_lisp(output, #env)
         };
         let inner = &self.def.sig.ident;
-        let wrapper = self.wrapper_ident();
+        // let wrapper = self.wrapper_ident();
+        let wrapper_struct = &self.opts.struct_name;
+
+        let min = self.arities.start;
+        let max = self.arities.end;
+
         quote! {
-            fn #wrapper(#env: &::rem::CallEnv) -> ::rem::Result<::rem::Value<'_>> {
-                #bindings
-                let output = #inner(#args)?;
-                #maybe_embed
-                #into_lisp
+            pub struct #wrapper_struct;
+            impl<'e> ::rem::func::LispFn<'e> for #wrapper_struct {
+                const MIN_ARITY: ::std::primitive::usize = #min;
+                const MAX_ARITY: ::std::option::Option::Option<::std::primitive::usize> = ::std::option::Option::Some(#max);
+
+                fn call(&self, #env: &'e ::rem::Env, #vals: &[::rem::Value<'e>]) -> rem::Result<rem::Value<'e>> {
+                    #bindings
+                    let output = #inner(#args)?;
+                    #maybe_embed
+                    #into_lisp
+                }
             }
         }
     }
@@ -200,77 +206,77 @@ impl LispFunc {
     /// symbol to the defined extern function.
     pub fn gen_exporter(&self) -> TokenStream2 {
         let define_wrapper = self.gen_wrapper();
-        let wrapper = self.wrapper_ident();
-        let exporter = self.exporter_ident();
-        let (min, max) = (self.arities.start, self.arities.end);
+        // let wrapper = self.wrapper_ident();
+        // let exporter = self.exporter_ident();
+        // let (min, max) = (self.arities.start, self.arities.end);
         let mut doc = util::doc(&self.def);
         doc.push_str("\n\n");
         doc.push_str(&lisp_signature(&self.args));
-        let path = match &self.opts.mod_in_name {
-            None => {
-                cfg_select! {
-                    feature = "mod-in-name" => {
-                        quote! {
-                            module_path!()
-                        }
-                    }
-                    _ => quote!{ "" }
-                }
-            }
-            Some(true) => quote!(module_path!()),
-            Some(false) => quote!(""),
-        };
-        let lisp_name = match &self.opts.name {
-            Some(name) => name.clone(),
-            None => util::lisp_name(&self.def.sig.ident),
-        };
+        // let path = match &self.opts.mod_in_name {
+        //     None => {
+        //         cfg_select! {
+        //             feature = "mod-in-name" => {
+        //                 quote! {
+        //                     module_path!()
+        //                 }
+        //             }
+        //             _ => quote!{ "" }
+        //         }
+        //     }
+        //     Some(true) => quote!(module_path!()),
+        //     Some(false) => quote!(""),
+        // };
+        // let lisp_name = match &self.opts.name {
+        //     Some(name) => name.clone(),
+        //     None => util::lisp_name(&self.def.sig.ident),
+        // };
         // TODO: Consider defining `extern "C" fn` directly instead of using export_functions! and
         // CallEnv wrapper.
         quote! {
             #define_wrapper
-            fn #exporter(env: &::rem::Env) -> ::rem::Result<()> {
-                let prefix = ::rem::init::lisp_path(#path);
-                ::rem::__export_functions! {
-                    env, prefix, {
-                        #lisp_name => (#wrapper, #min..#max, #doc),
-                    }
-                }
-                Ok(())
-            }
+            // fn #exporter(env: &::rem::Env) -> ::rem::Result<()> {
+            //     let prefix = ::rem::init::lisp_path(#path);
+            //     ::rem::__export_functions! {
+            //         env, prefix, {
+            //             #lisp_name => (#wrapper, #min..#max, #doc),
+            //         }
+            //     }
+            //     Ok(())
+            // }
         }
     }
 
-    /// Generates the registrator function. It will be called when the shared lib is loaded (by the
-    /// OS, before `emacs_module_init` is called by Emacs), to add the exporter to the list of
-    /// functions `emacs_module_init` will call (provided that it's generated by
-    /// [`#[rem::module]`]).
-    ///
-    /// [`#[rem::module]`]: attr.module.html
-    pub fn gen_registrator(&self) -> TokenStream2 {
-        let exporter = self.exporter_ident();
-        let registrator = self.registrator_ident();
-        let init_fns = util::init_fns_path();
-        quote! {
-            #[::rem::deps::ctor::ctor(crate_path = ::rem::deps::ctor)]
-            fn #registrator() {
-                let mut funcs = #init_fns.lock()
-                    .expect("Failed to acquire a write lock on map of initializers");
-                funcs.push(#exporter);
-            }
-        }
-    }
+    // /// Generates the registrator function. It will be called when the shared lib is loaded (by the
+    // /// OS, before `emacs_module_init` is called by Emacs), to add the exporter to the list of
+    // /// functions `emacs_module_init` will call (provided that it's generated by
+    // /// [`#[rem::module]`]).
+    // ///
+    // /// [`#[rem::module]`]: attr.module.html
+    // pub fn gen_registrator(&self) -> TokenStream2 {
+    //     let exporter = self.exporter_ident();
+    //     let registrator = self.registrator_ident();
+    //     let init_fns = util::init_fns_path();
+    //     quote! {
+    //         #[::rem::deps::ctor::ctor(crate_path = ::rem::deps::ctor)]
+    //         fn #registrator() {
+    //             let mut funcs = #init_fns.lock()
+    //                 .expect("Failed to acquire a write lock on map of initializers");
+    //             funcs.push(#exporter);
+    //         }
+    //     }
+    // }
 
-    fn wrapper_ident(&self) -> Ident {
-        util::concat("__emr_O_", &self.def.sig.ident)
-    }
+    // fn wrapper_ident(&self) -> Ident {
+    //     util::concat("__emr_O_", &self.def.sig.ident)
+    // }
 
-    fn exporter_ident(&self) -> Ident {
-        util::concat("__emrs_E_", &self.def.sig.ident)
-    }
+    // fn exporter_ident(&self) -> Ident {
+    //     util::concat("__emrs_E_", &self.def.sig.ident)
+    // }
 
-    fn registrator_ident(&self) -> Ident {
-        util::concat("__emrs_R_", &self.def.sig.ident)
-    }
+    // fn registrator_ident(&self) -> Ident {
+    //     util::concat("__emrs_R_", &self.def.sig.ident)
+    // }
 }
 
 fn check_signature(sig: &Signature) -> Result<(Vec<Arg>, Range<usize>, Span), TokenStream2> {
