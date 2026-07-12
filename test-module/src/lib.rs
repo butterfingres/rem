@@ -8,15 +8,14 @@ use rem::{defun, Env, Lambda, IntoLisp, Result, Value};
 mod macros;
 
 mod basics;
+mod call;
 mod eq;
 mod error;
+mod hash_map;
 mod lifetime;
-mod test_vector;
-mod call;
-
 mod ref_cell;
 mod vector;
-mod hash_map;
+mod vector_2d;
 
 rem::plugin_is_GPL_compatible!();
 
@@ -33,15 +32,15 @@ fn t(env: &Env) -> Result<()> {
 
     env.message("Hel\0lo, \0Emacs")?;
 
-    call::init(env)?;
-    hash_map::init(env)?;
-    ref_cell::init(env)?;
-    vector::init(env)?;
     basics::init(env)?;
+    call::init(env)?;
     eq::init(env)?;
     error::init(env)?;
+    hash_map::init(env)?;
     lifetime::init(env)?;
-    test_vector::init(env)?;
+    ref_cell::init(env)?;
+    vector::init(env)?;
+    vector_2d::init(env)?;
     env.lambda(&Inc, Some(c"1+"))?.fset(env, "t/inc")?;
     env.lambda(&Identity, Some(c"Return the input (not a copy)."))?.fset(env, "t/identity")?;
     env.lambda(&ToUppercase, None)?.fset(env, "t/to-uppercase")?;

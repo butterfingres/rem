@@ -267,29 +267,28 @@
 ;;; ----------------------------------------------------------------------------
 ;;; user-ptr.
 
-(ert-deftest transfer::vector ()
-
-  (let* ((v1 (t/vector-make 5 6))
-         (v2 (t/vector-make 1 3)))
+(ert-deftest transfer::vector-2d ()
+  (let* ((v1 (t/vector-2d-make 5 6))
+         (v2 (t/vector-2d-make 1 3)))
     (should (string-prefix-p "#<user-ptr" (format "%s" v1)))
-    (should (equal (t/vector-to-list v1) '(5 6)))
-    (should (equal (t/vector-to-list
-                    (t/vector-add v1 v2))
+    (should (equal (t/vector-2d-to-list v1) '(5 6)))
+    (should (equal (t/vector-2d-to-list
+                    (t/vector-2d-add v1 v2))
                    '(6 9)))
     ;; Emacs doesn't support custom equality...
-    (should (not (equal (t/vector-add v1 v2)
-                        (t/vector-add v1 v2))))
+    (should (not (equal (t/vector-2d-add v1 v2)
+                        (t/vector-2d-add v1 v2))))
     ;; ... but should consider an object equal to itself.
-    (should (let* ((v3 (t/vector-add v1 v2))
+    (should (let* ((v3 (t/vector-2d-add v1 v2))
                    (v4 (t/identity v3)))
               (equal v3 v4))))
 
   ;; Mutation.
-  (let ((v (t/vector-make 5 6)))
-    (t/vector-scale-mutably 3 v)
-    (should (equal (t/vector-to-list v) '(15 18)))
-    (t/vector-swap-components v)
-    (should (equal (t/vector-to-list v) '(18 15))))
+  (let ((v (t/vector-2d-make 5 6)))
+    (t/vector-2d-scale-mutably 3 v)
+    (should (equal (t/vector-2d-to-list v) '(15 18)))
+    (t/vector-2d-swap-components v)
+    (should (equal (t/vector-2d-to-list v) '(18 15))))
 
   ;; ;; This is to trigger the finalizer. TODO: Somehow validate they actually runs.
   ;; (dotimes (i 100)
@@ -299,7 +298,7 @@
   (let ((s (t/wrap-string "abc")))
     (should (string-prefix-p "#<user-ptr" (format "%s" s)))
     ;; TODO: Test 'rust-invalid-user-ptr. That probably requires 2 modules.
-    (should-error (t/vector-to-list s)
+    (should-error (t/vector-2d-to-list s)
                   :type 'rust-wrong-type-user-ptr)))
 
 (ert-deftest transfer::ref-cell-borrow-conflict ()
@@ -313,7 +312,7 @@
                                                 :type 'rust-error))))))
 
 (ert-deftest transfer::type-check ()
-  (should-error (t/ref-cell-inc (t/vector-make 1 2))
+  (should-error (t/ref-cell-inc (t/vector-2d-make 1 2))
                 :type 'rust-wrong-type-user-ptr)
   (should-error (t/ref-cell-inc 5)
                 :type 'wrong-type-argument)
@@ -321,8 +320,8 @@
     (let ((parent-symbols (get 'rust-wrong-type-user-ptr 'error-conditions)))
       (should (member 'rust-error parent-symbols))
       (should (member 'wrong-type-argument parent-symbols)))
-    (should-error (t/ref-cell-inc (t/vector-make 1 2)) :type 'rust-error)
-    (should-error (t/ref-cell-inc (t/vector-make 1 2)) :type 'wrong-type-argument)))
+    (should-error (t/ref-cell-inc (t/vector-2d-make 1 2)) :type 'rust-error)
+    (should-error (t/ref-cell-inc (t/vector-2d-make 1 2)) :type 'wrong-type-argument)))
 
 (ert-deftest transfer::hash-map ()
   (let ((m (t/hash-map-make)))
