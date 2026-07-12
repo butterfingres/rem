@@ -1,6 +1,6 @@
 use crate::{
     Env, Result, Value,
-    global::{GlobalRef, LazyGlobalRef, Symbol, OnceGlobalRef},
+    global::{GlobalRef, LazyGlobalRef, Symbol},
 };
 
 /// Defines static [`&OnceGlobalRef`] variables that point to corresponding Lisp symbols.
@@ -60,12 +60,5 @@ impl<'e> IntoLispSymbol<'e> for &'e LazyGlobalRef<Symbol<'_>> {
     #[inline(always)]
     fn into_lisp_symbol(self, env: &'e Env) -> Result<Value<'e>> {
         self.try_bind(env)?.into_lisp_symbol(env)
-    }
-}
-
-impl<'e> IntoLispSymbol<'e> for &'e OnceGlobalRef {
-    #[inline(always)]
-    fn into_lisp_symbol(self, env: &'e Env) -> Result<Value<'e>> {
-        self.bind(env).into_lisp_symbol(env)
     }
 }

@@ -1,6 +1,5 @@
 #![expect(private_bounds, reason = "the private bounds serve to seal the trait")]
 
-use std::ops::Deref;
 use std::sync::OnceLock;
 
 use emacs_module::emacs_value;
@@ -109,104 +108,6 @@ impl<'e> Value<'e> {
     }
 }
 
-// impl<'e> PartialEq<Value<'e>> for GlobalRef {
-//     #[inline]
-//     fn eq(&self, other: &Value<'e>) -> bool {
-//         self.bind(other.env) == *other
-//     }
-// }
-
-// impl<'e> PartialEq<GlobalRef> for Value<'e> {
-//     #[inline]
-//     fn eq(&self, other: &GlobalRef) -> bool {
-//         other == self
-//     }
-// }
-
-/// A [`GlobalRef`] that can be initialized once. This is useful for long-lived values that should
-/// be initialized when the dynamic module is loaded. Typical use cases include "importing"
-/// frequently-used symbols via [`use_symbols!`], or frequently-called functions via
-/// [`use_functions!`].
-///
-/// [`use_symbols!`]: crate::use_symbols
-/// [`use_functions!`]: crate::use_functions
-#[derive(Debug)]
-#[repr(transparent)]
-pub struct OnceGlobalRef {
-    inner: OnceLock<GlobalRef>,
-}
-
-impl OnceGlobalRef {
-    pub const fn new() -> Self {
-        Self { inner: OnceLock::new() }
-    }
-
-    /// Initializes this global reference with the given function.
-    #[doc(hidden)]
-    pub fn init<F: FnOnce(&Env) -> Result<Value>>(&self, env: &Env, f: F) -> Result<&GlobalRef> {
-        let g = f(env)?.make_global_ref(env);
-        self.inner.set(g).expect("Cannot initialize a global reference more than once");
-        Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
-    }
-
-    /// Points this global reference to an interned Lisp symbol with the given name.
-    ///
-    /// This should be called once, during module initialization.
-    #[doc(hidden)]
-    pub fn init_to_symbol(&self, env: &Env, name: &str) -> Result<&GlobalRef> {
-        self.init(env, |env| env.intern(name))
-    }
-
-    /// Points this global reference to the function bound to the Lisp symbol with the given name.
-    ///
-    /// This should be called once, during module initialization.
-    ///
-    /// If the symbol is later bound to another function, this global reference will still point to
-    /// the old function. Therefore, this is best used for built-in and primitive functions.
-    #[doc(hidden)]
-    pub fn init_to_function(&self, env: &Env, name: &str) -> Result<&GlobalRef> {
-        self.init(env, |env| {
-            let symbol = env.intern(name)?;
-            env.call("indirect-function", [symbol])
-        })
-    }
-}
-impl Default for OnceGlobalRef {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<'e> IntoLisp<'e> for &'e OnceGlobalRef {
-    #[inline(always)]
-    fn into_lisp(self, env: &'e Env) -> Result<Value<'e>> {
-        Ok(self.bind(env))
-    }
-}
-
-impl Deref for OnceGlobalRef {
-    type Target = GlobalRef;
-
-    #[inline]
-    fn deref(&self) -> &Self::Target {
-        self.inner.get().expect("Cannot access an uninitialized global reference")
-    }
-}
-
-// impl<'e> PartialEq<Value<'e>> for OnceGlobalRef {
-//     #[inline]
-//     fn eq(&self, other: &Value<'e>) -> bool {
-//         self.bind(other.env) == *other
-//     }
-// }
-
-// impl<'e> PartialEq<OnceGlobalRef> for Value<'e> {
-//     #[inline]
-//     fn eq(&self, other: &OnceGlobalRef) -> bool {
-//         other == self
-//     }
-// }
-
 trait LazyGlobalRefValue
 where
     Self: Copy,
@@ -283,12 +184,3 @@ where
         self.try_bind(env)
     }
 }
-// impl<'e, T> PartialEq<Value<'e>> for LazyGlobalRef<T>
-// where
-//     T: LazyGlobalRefValue,
-// {
-//     #[inline]
-//     fn eq(&self, r: &Value<'e>) -> bool {
-//         self.try_bind(r.env).map(|l| l == *r).unwrap_or_default()
-//     }
-// }

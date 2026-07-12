@@ -35,7 +35,7 @@ pub use rem_macros::{defun, module};
 pub use self::{
     env::Env,
     value::Value,
-    global::{GlobalRef, OnceGlobalRef, LazyGlobalRef, Symbol, Fn},
+    global::{GlobalRef, LazyGlobalRef, Symbol, Fn},
     types::{FromLisp, IntoLisp, Transfer, Vector},
     func::{CallEnv, Lambda},
     error::{ErrorKind, Result, ResultExt, Error},
