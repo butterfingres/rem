@@ -4,137 +4,14 @@
 //! [`defun`]: attr.defun.html
 
 use {
-    crate::{Env, Value, Result, FromLisp, IntoLisp, subr},
+    crate::{Env, Value, Result, IntoLisp, subr},
     std::{
-        os, panic,
-        ffi::{c_void, CStr, CString},
-        ops::{Deref, Range},
+        panic,
+        ffi::{c_void, CStr},
         ptr, slice,
     },
-    emacs_module::{emacs_env, emacs_value, EmacsSubr, emacs_variadic_function},
+    emacs_module::{emacs_env, emacs_value, emacs_variadic_function},
 };
-
-pub trait Manage {
-    unsafe fn make_function<T: Into<Vec<u8>>>(
-        &self,
-        function: EmacsSubr,
-        arities: Range<usize>,
-        doc: T,
-        data: *mut os::raw::c_void,
-    ) -> Result<Value<'_>>;
-
-    fn fset(&self, name: &str, func: Value<'_>) -> Result<Value<'_>>;
-}
-
-impl Manage for Env {
-    /// # Safety
-    ///
-    /// The `function` must use `data` pointer in safe ways.
-    #[allow(unused_unsafe)]
-    unsafe fn make_function<T: Into<Vec<u8>>>(
-        &self,
-        function: EmacsSubr,
-        arities: Range<usize>,
-        doc: T,
-        data: *mut os::raw::c_void,
-    ) -> Result<Value<'_>> {
-        unsafe_raw_call_value!(
-            self,
-            make_function,
-            arities.start as isize,
-            arities.end as isize,
-            Some(function),
-            CString::new(doc)?.as_ptr(),
-            data
-        )
-    }
-
-    fn fset(&self, name: &str, func: Value<'_>) -> Result<Value<'_>> {
-        let symbol = self.intern(name)?;
-        self.call("fset", [symbol, func])
-    }
-}
-
-/// Like [`Env`], but is available only in exported functions. This has additional methods to handle
-/// arguments passed from Lisp code.
-///
-/// [`Env`]: struct.Env.html
-#[doc(hidden)]
-#[derive(Debug)]
-pub struct CallEnv {
-    env: Env,
-    nargs: usize,
-    args: *mut emacs_value,
-}
-
-// TODO: Iterator and Index
-impl CallEnv {
-    #[doc(hidden)]
-    #[inline]
-    pub unsafe fn new(env: Env, nargs: isize, args: *mut emacs_value) -> Self {
-        let nargs = nargs as usize;
-        Self { env, nargs, args }
-    }
-
-    #[doc(hidden)]
-    #[inline]
-    pub fn raw_args(&self) -> &[emacs_value] {
-        // Safety: Emacs assures *args is valid for the duration of the call, with length nargs.
-        unsafe { slice::from_raw_parts(self.args, self.nargs) }
-    }
-
-    pub fn args(&self) -> Vec<Value<'_>> {
-        // Safety: Emacs assures *args are on the stack for the duration of the call.
-        self.raw_args().iter().map(|v| unsafe { Value::new(*v, &self.env) }).collect()
-    }
-
-    #[inline]
-    pub fn get_arg(&self, i: usize) -> Value<'_> {
-        let args: &[emacs_value] = self.raw_args();
-        // Safety: Emacs assures *args are on the stack for the duration of the call.
-        unsafe { Value::new(args[i], self) }
-    }
-
-    #[inline]
-    pub fn parse_arg<'e, T: FromLisp<'e>>(&'e self, i: usize) -> Result<T> {
-        self.get_arg(i).into_rust(&self.env)
-    }
-}
-
-/// This allows `Env`'s methods to be called on a `CallEnv`.
-impl Deref for CallEnv {
-    type Target = Env;
-
-    #[doc(hidden)]
-    #[inline(always)]
-    fn deref(&self) -> &Env {
-        &self.env
-    }
-}
-
-pub trait HandleCall {
-    fn handle_call<'e, T, F>(&'e self, f: F) -> emacs_value
-    where
-        F: Fn(&'e CallEnv) -> Result<T> + panic::RefUnwindSafe,
-        T: IntoLisp<'e>;
-}
-
-impl HandleCall for CallEnv {
-    #[inline]
-    fn handle_call<'e, T, F>(&'e self, f: F) -> emacs_value
-    where
-        F: Fn(&'e CallEnv) -> Result<T> + panic::RefUnwindSafe,
-        T: IntoLisp<'e>,
-    {
-        let env = panic::AssertUnwindSafe(self);
-        let result = panic::catch_unwind(|| unsafe {
-            let rust_result = f(&env);
-            let lisp_result = rust_result.and_then(|t| t.into_lisp(&env));
-            env.maybe_exit(lisp_result)
-        });
-        env.handle_panic(result)
-    }
-}
 
 fn handle_call<'e, F, T>(env: &'e Env, f: F) -> emacs_value
 where
