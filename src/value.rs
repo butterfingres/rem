@@ -13,6 +13,7 @@ use crate::{subr, Env, Result, FromLisp, Transfer};
 ///
 /// [`Env`]: struct.Env.html
 #[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 pub struct Value<'e> {
     pub(crate) raw: emacs_value,
     _marker: PhantomData<&'e ()>,

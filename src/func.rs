@@ -3,16 +3,16 @@
 //!
 //! [`defun`]: attr.defun.html
 
-use std::{
-    os, panic,
-    ffi::CString,
-    ops::{Deref, Range},
-    slice,
+use {
+    crate::{Env, Value, Result, FromLisp, IntoLisp},
+    std::{
+        os, panic,
+        ffi::{c_void, CString},
+        ops::{Deref, Range},
+        slice,
+    },
+    emacs_module::{emacs_env, emacs_value, EmacsSubr},
 };
-
-use emacs_module::{emacs_value, EmacsSubr};
-
-use crate::{Env, Value, Result, FromLisp, IntoLisp};
 
 #[doc(hidden)]
 #[macro_export]
@@ -213,6 +213,39 @@ impl HandleCall for CallEnv {
     }
 }
 
-// pub trait LispFn {
-//     fn call<'e>(&self, _: &'e Env, args: &[])
-// }
+fn handle_call<'e, F, T>(env: &'e Env, f: F) -> emacs_value
+where
+    F: Fn(&'e Env) -> Result<T> + panic::RefUnwindSafe,
+    T: IntoLisp<'e>,
+{
+    let env = panic::AssertUnwindSafe(env);
+    env.handle_panic(panic::catch_unwind(|| {
+        let val = f(&env).and_then(|val| val.into_lisp(&env));
+        unsafe { env.maybe_exit(val) }
+    }))
+}
+
+pub trait LispFn<'e> {
+    type Output: IntoLisp<'e>;
+    fn call(&self, _: &'e Env, args: &[Value<'e>]) -> Result<Self::Output>;
+}
+#[doc(hidden)]
+pub unsafe extern "C" fn extern_lambda<F>(
+    env: *mut emacs_env,
+    nargs: isize,
+    args: *mut emacs_value,
+    data: *mut c_void,
+) -> emacs_value
+where
+    F: for<'e> LispFn<'e>,
+{
+    let env = unsafe { Env::new(env) };
+    handle_call(&env, |env| {
+        let len = usize::try_from(nargs).unwrap_or_default();
+        let args = unsafe { slice::from_raw_parts(args.cast(), len) };
+
+        let f = data.cast::<F>();
+        let f = unsafe { f.as_ref() }.unwrap();
+        f.call(env, args)
+    })
+}
