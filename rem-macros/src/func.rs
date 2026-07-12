@@ -59,7 +59,7 @@ struct FuncOpts {
     /// How the return value should be embedded in Lisp as a `user-ptr`. `None` means no embedding.
     #[darling(default)]
     user_ptr: Option<UserPtr>,
-    struct_name: Ident,
+    name: Ident,
 }
 
 #[derive(Debug)]
@@ -133,7 +133,7 @@ impl LispFunc {
                 Arg::Env { span } => {
                     // TODO: Find a way not to define inner function, somehow, otherwise the reported
                     // error is confusing (i.e expecting Env, found &Env).
-                    args.append_all(quote_spanned!(span=> &**#env,))
+                    args.append_all(quote_spanned!(span=> #env,))
                 }
                 Arg::Val { span, access, nth, .. } => {
                     let name = util::arg("arg", nth);
@@ -181,7 +181,7 @@ impl LispFunc {
         };
         let inner = &self.def.sig.ident;
         // let wrapper = self.wrapper_ident();
-        let wrapper_struct = &self.opts.struct_name;
+        let wrapper_struct = &self.opts.name;
 
         let min = self.arities.start;
         let max = self.arities.end;
@@ -190,7 +190,7 @@ impl LispFunc {
             pub struct #wrapper_struct;
             impl<'e> ::rem::func::LispFn<'e> for #wrapper_struct {
                 const MIN_ARITY: ::std::primitive::usize = #min;
-                const MAX_ARITY: ::std::option::Option::Option<::std::primitive::usize> = ::std::option::Option::Some(#max);
+                const MAX_ARITY: ::std::option::Option<::std::primitive::usize> = ::std::option::Option::Some(#max);
 
                 fn call(&self, #env: &'e ::rem::Env, #vals: &[::rem::Value<'e>]) -> rem::Result<rem::Value<'e>> {
                     #bindings

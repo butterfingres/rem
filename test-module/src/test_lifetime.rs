@@ -51,19 +51,19 @@ where
 // Before fixing:
 // - macOS: Segmentation fault
 // - Linux: Segmentation fault
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterNewString)]
 fn gc_after_new_string(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || "0".into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterNewInt)]
 fn gc_after_new_int(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || 5.into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterNewFloat)]
 fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || 5.8.into_lisp(env), print)
 }
@@ -71,7 +71,7 @@ fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
 // Before fixing:
 // - macOS: Segmentation fault
 // - Linux: Segmentation fault
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterUninterning)]
 fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
     // Wouldn't fail if count is 1 or 2.
     create_collect_use(
@@ -90,7 +90,7 @@ fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
 // Before fixing:
 // - macOS: Abort trap (since the violation happens in Rust)
 // - Linux: wrong-type-argument (maybe the runtime is a bit different in Linux?)
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterRetrieving)]
 fn gc_after_retrieving(env: &Env) -> Result<Value<'_>> {
     create_collect_use(
         env,
@@ -106,7 +106,7 @@ fn gc_after_retrieving(env: &Env) -> Result<Value<'_>> {
     )
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = GcAfterCatching1)]
 fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     create_collect_use(
         env,
@@ -133,7 +133,7 @@ fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
 /// With a correct implementation of Drop for Env, this function should crash Emacs
 /// when it is run with the '--module-assertions' flag, regardless of whether FUNC
 /// triggered a non-local exit.
-#[defun(mod_in_name = false)]
+#[defun(name = TriggerDoubleFreeGlobalRef)]
 fn trigger_double_free_global_ref<'e>(env: &'e Env, func: Value<'e>) -> Result<()> {
     eprintln!("0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     let _ = env.list((1, 2))?;
@@ -145,5 +145,17 @@ fn trigger_double_free_global_ref<'e>(env: &'e Env, func: Value<'e>) -> Result<(
     eprintln!("2 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     env.call("funcall", [func])?;
     eprintln!("3 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    Ok(())
+}
+
+pub fn init(env: &Env) -> Result<()> {
+    env.lambda(&GcAfterNewString, None)?.fset(env, "t/gc-after-new-string")?;
+    env.lambda(&GcAfterNewInt, None)?.fset(env, "t/gc-after-new-int")?;
+    env.lambda(&GcAfterNewFloat, None)?.fset(env, "t/gc-after-new-float")?;
+    env.lambda(&GcAfterUninterning, None)?.fset(env, "t/gc-after-uninterning")?;
+    env.lambda(&GcAfterRetrieving, None)?.fset(env, "t/gc-after-retrieving")?;
+    env.lambda(&GcAfterCatching1, None)?.fset(env, "t/gc-after-catching-1")?;
+    env.lambda(&TriggerDoubleFreeGlobalRef, None)?.fset(env, "t/trigger-double-free-global-ref")?;
+
     Ok(())
 }

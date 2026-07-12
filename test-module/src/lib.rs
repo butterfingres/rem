@@ -33,9 +33,22 @@ fn t(env: &Env) -> Result<()> {
 
     env.message("Hel\0lo, \0Emacs")?;
 
+    call::init(env)?;
+    hash_map::init(env)?;
+    ref_cell::init(env)?;
+    vector::init(env)?;
     test_basics::init(env)?;
     test_eq::init(env)?;
     test_error::init(env)?;
+    test_lifetime::init(env)?;
+    test_vector::init(env)?;
+    env.lambda(&Inc, None)?.fset(env, "t/inc")?;
+    env.lambda(&Identity, None)?.fset(env, "t/identity")?;
+    env.lambda(&ToUppercase, None)?.fset(env, "t/to-uppercase")?;
+    env.lambda(&WrapString, None)?.fset(env, "t/wrap-string")?;
+    env.lambda(&MakeDec, None)?.fset(env, "t/make-dec")?;
+    env.lambda(&MakeIncAndPlus, None)?.fset(env, "t/make-inc-and-plus")?;
+
     Ok(())
 }
 
@@ -44,19 +57,19 @@ fn t(env: &Env) -> Result<()> {
 
 // Docstring above, with space.
 /// 1+
-#[defun]
+#[defun(name = Inc)]
 fn inc(x: i64) -> Result<i64> {
     Ok(x + 1)
 }
 
 // Docstring below, without space.
-#[defun]
+#[defun(name = Identity)]
 ///Return the input (not a copy).
 fn identity(x: Value) -> Result<Value> {
     Ok(x)
 }
 
-#[defun]
+#[defun(name = ToUppercase)]
 fn to_uppercase(s: String) -> Result<String> {
     Ok(s.to_uppercase())
 }
@@ -70,12 +83,12 @@ custom_types! {
     StringWrapper;
 }
 
-#[defun]
+#[defun(name = WrapString)]
 fn wrap_string(s: String) -> Result<Box<StringWrapper>> {
     Ok(Box::new(StringWrapper { s }))
 }
 
-#[defun]
+#[defun(name = MakeDec)]
 fn make_dec(env: &Env) -> Result<Value<'_>> {
     fn dec(env: &CallEnv) -> Result<Value<'_>> {
         let i: i64 = env.parse_arg(0)?;
@@ -84,7 +97,7 @@ fn make_dec(env: &Env) -> Result<Value<'_>> {
     rem::lambda!(env, dec, 1..1, "decrement")
 }
 
-#[defun]
+#[defun(name = MakeIncAndPlus)]
 fn make_inc_and_plus(env: &Env) -> Result<Value<'_>> {
     fn inc(env: &CallEnv) -> Result<Value<'_>> {
         let i: i64 = env.parse_arg(0)?;

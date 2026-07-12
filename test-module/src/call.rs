@@ -1,6 +1,6 @@
 use crate::*;
 
-#[defun]
+#[defun(name = List)]
 fn list(env: &Env, n: u16) -> Result<Value> {
     let x = "x";
     let y = 1;
@@ -36,7 +36,7 @@ fn list(env: &Env, n: u16) -> Result<Value> {
     env.call(list, ints.as_slice())
 }
 
-#[defun]
+#[defun(name = ValueFn)]
 fn value<'e>(env: &'e Env, function: Value<'e>, arg: Value<'e>) -> Result<Value<'e>> {
     function.call(env, [arg])
 }
@@ -48,3 +48,10 @@ fn value<'e>(env: &'e Env, function: Value<'e>, arg: Value<'e>) -> Result<Value<
 //     }
 //     Ok(())
 // }
+
+pub fn init(env: &Env) -> Result<()> {
+    env.lambda(&List, None)?.fset(env, "t/call-list")?;
+    env.lambda(&ValueFn, None)?.fset(env, "t/call-value")?;
+
+    Ok(())
+}

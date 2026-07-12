@@ -3,12 +3,12 @@
 use std::fs;
 
 use rem::{defun, CallEnv, Env, Result, Value};
-use rem::ErrorKind::{self, Signal, Throw};
+use rem::ErrorKind;
 use rem::ResultExt;
 
 use super::MODULE_PREFIX;
 
-#[defun(mod_in_name = false, name = "error:lisp-divide")]
+#[defun(name = LispDivide)]
 fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
     fn inner(env: &Env, x: i64, y: i64) -> Result<Value<'_>> {
         call!(env, "/", x, y)
@@ -21,11 +21,11 @@ fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
     foo(env, x, y)?.into_rust(env)
 }
 
-#[defun(mod_in_name = false, name = "error:get-type")]
+#[defun(name = GetType)]
 fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     match f.call(env, []) {
         Err(error) => {
-            if let Some(Signal { symbol, .. }) = error.downcast_ref::<ErrorKind>() {
+            if let Some(ErrorKind::Signal { symbol, .. }) = error.downcast_ref::<ErrorKind>() {
                 unsafe {
                     return Ok(symbol.value(env));
                 }
@@ -37,11 +37,11 @@ fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
 }
 
 /// Call LAMBDA and return the result. Return the thrown value if EXPECTED-TAG is thrown.
-#[defun(mod_in_name = false, name = "error:catch")]
+#[defun(name = Catch)]
 fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
     match lambda.call(env, []) {
         Err(error) => {
-            if let Some(Throw { tag, value }) = error.downcast_ref::<ErrorKind>() {
+            if let Some(ErrorKind::Throw { tag, value }) = error.downcast_ref::<ErrorKind>() {
                 unsafe {
                     if tag.value(env).eq(env, expected_tag) {
                         return Ok(value.value(env));
@@ -55,22 +55,22 @@ fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result
 }
 
 /// Call `apply` on LAMBDA and ARGS, propagating any signaled error.
-#[defun(mod_in_name = false, name = "error:apply")]
+#[defun(name = Apply)]
 fn apply<'e>(env: &'e Env, lambda: Value<'e>, args: Value<'e>) -> Result<Value<'e>> {
     env.call("apply", (lambda, args))
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = ReadFile)]
 fn read_file<'e>(env: &Env, path: String) -> Result<String> {
     fs::read_to_string(path).or_signal(env, &EMRS_FILE_ERROR)
 }
 
-#[defun(mod_in_name = false, name = "error:panic")]
+#[defun(name = Panic)]
 fn panic(message: String) -> Result<()> {
     panic!("{}", message)
 }
 
-#[defun(mod_in_name = false, name = "error:signal")]
+#[defun(name = Signal)]
 fn signal(env: &Env, symbol: Value, message: String) -> Result<()> {
     env.signal(symbol, (message,))
 }
@@ -99,10 +99,19 @@ pub fn init(env: &Env) -> Result<()> {
         }
     }
 
-    #[defun(mod_in_name = false, name = "error:signal-custom")]
+    #[defun(name = SignalCustom)]
     fn signal_custom(env: &Env) -> Result<()> {
         env.signal(&EMACS_MODULE_RS_TEST_ERROR, [])
     }
+
+    env.lambda(&LispDivide, None)?.fset(env, "error:lisp-divide")?;
+    env.lambda(&GetType, None)?.fset(env, "error:get-type")?;
+    env.lambda(&Catch, None)?.fset(env, "error:catch")?;
+    env.lambda(&Apply, None)?.fset(env, "error:apply")?;
+    env.lambda(&ReadFile, None)?.fset(env, "read-file")?;
+    env.lambda(&Panic, None)?.fset(env, "error:panic")?;
+    env.lambda(&Signal, None)?.fset(env, "error:signal")?;
+    env.lambda(&SignalCustom, None)?.fset(env, "error:signal-custom")?;
 
     Ok(())
 }

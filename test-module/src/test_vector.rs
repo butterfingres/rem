@@ -2,27 +2,27 @@
 
 use rem::{defun, Env, Result, Value, Vector};
 
-#[defun(mod_in_name = false)]
+#[defun(name = VecSize)]
 fn vec_size(v: Vector) -> Result<usize> {
     Ok(v.len())
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = VecGet)]
 fn vec_get<'e>(env: &'e Env, v: Vector<'e>, i: i64) -> Result<Value<'e>> {
     v.get(env, i as usize)
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = VecSet)]
 fn vec_set(env: &Env, v: Vector, i: i64, value: Value) -> Result<()> {
     v.set(env, i as usize, value)
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = IdentityIfVector)]
 fn identity_if_vector(v: Vector) -> Result<Vector> {
     Ok(v)
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = StringifyNumVector)]
 fn stringify_num_vector<'e>(env: &'e Env, v: Vector<'e>) -> Result<Vector<'e>> {
     for i in 0..v.len() {
         let x: i64 = v.get(env, i)?;
@@ -31,7 +31,18 @@ fn stringify_num_vector<'e>(env: &'e Env, v: Vector<'e>) -> Result<Vector<'e>> {
     Ok(v)
 }
 
-#[defun(mod_in_name = false)]
+#[defun(name = MakeVector)]
 fn make_vector<'e>(env: &'e Env, length: usize, init: Value<'e>) -> Result<Vector<'e>> {
     env.make_vector(length, init)
+}
+
+pub fn init(env: &Env) -> Result<()> {
+    env.lambda(&VecSize, None)?.fset(env, "t/vec-size")?;
+    env.lambda(&VecGet, None)?.fset(env, "t/vec-get")?;
+    env.lambda(&VecSet, None)?.fset(env, "t/vec-set")?;
+    env.lambda(&IdentityIfVector, None)?.fset(env, "t/identity-if-vector")?;
+    env.lambda(&StringifyNumVector, None)?.fset(env, "t/stringify-num-vector")?;
+    env.lambda(&MakeVector, None)?.fset(env, "t/make-vector")?;
+
+    Ok(())
 }

@@ -6,28 +6,37 @@ use std::cell::RefCell;
 // TODO: Add tests for Mutex and RwLock, and more tests for RefCell.
 
 /// Wrap the given integer in a RefCell.
-#[defun(user_ptr)]
+#[defun(user_ptr, name = Wrap)]
 fn wrap(x: i64) -> Result<i64> {
     Ok(x)
 }
 
-#[defun]
+#[defun(name = Unwrap)]
 fn unwrap(env: &Env, r: Value<'_>) -> Result<i64> {
     let r: &RefCell<i64> = r.into_rust(env)?;
     Ok(*r.try_borrow()?)
 }
 
 /// Mutably increment the wrapped integer, returning the new value.
-#[defun]
+#[defun(name = Inc)]
 fn inc(x: &mut i64) -> Result<i64> {
     *x += 1;
     Ok(*x)
 }
 
 /// Unwrap the integer, call the given function while still holding the reference.
-#[defun]
+#[defun(name = UnwrapAndCall)]
 #[allow(clippy::trivially_copy_pass_by_ref)] // TODO: Test with sth else not i64.
 fn unwrap_and_call(env: &Env, _: &i64, lambda: Value<'_>) -> Result<()> {
     lambda.call(env, [])?;
+    Ok(())
+}
+
+pub fn init(env: &Env) -> Result<()> {
+    env.lambda(&Wrap, None)?.fset(env, "t/wrap")?;
+    env.lambda(&Unwrap, None)?.fset(env, "t/unwrap")?;
+    env.lambda(&Inc, None)?.fset(env, "t/inc")?;
+    env.lambda(&UnwrapAndCall, None)?.fset(env, "t/unwrap-and-call")?;
+
     Ok(())
 }
