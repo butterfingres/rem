@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{ToTokens, TokenStreamExt};
 use syn::{ext::IdentExt, Ident, ItemFn};
 
 // TODO: Add more extensively checks and transformations to make this more "idiomatic".
@@ -34,8 +34,4 @@ pub fn doc(fn_item: &ItemFn) -> String {
         }
     }
     doc.join("\n")
-}
-
-pub fn prefix_path() -> TokenStream2 {
-    quote!(::rem::init::__PREFIX__)
 }

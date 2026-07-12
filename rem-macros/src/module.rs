@@ -21,24 +21,12 @@ struct ModuleOpts {
     /// Name of this module (feature name).
     #[darling(default)]
     name: Name,
-    /// Separator following the feature name to form the prefix in functions' full Lisp name.
-    #[darling(default = "default::separator")]
-    separator: String,
-    /// Alternative prefix (instead of the feature name) to use in functions' full Lisp name.
-    #[darling(default)]
-    defun_prefix: Option<String>,
 }
 
 #[derive(Debug)]
 pub struct Module {
     def: ItemFn,
     opts: ModuleOpts,
-}
-
-mod default {
-    pub fn separator() -> String {
-        "-".into()
-    }
 }
 
 /// We don't use the derived impl provided by darling, since we want a different syntax.
@@ -102,9 +90,7 @@ impl Module {
     pub fn gen_init(&self) -> TokenStream2 {
         let init = Self::init_ident();
         let env = quote!(env);
-        let separator = &self.opts.separator;
         let hook = &self.def.sig.ident;
-        let prefix = util::prefix_path();
         let feature = match &self.opts.name {
             Name::Crate => quote!(::rem::lisp_pkg!()),
             Name::Str(name) => quote!(#name),
@@ -113,22 +99,10 @@ impl Module {
                 quote!(#name)
             }
         };
-        let defun_prefix = match &self.opts.defun_prefix {
-            None => quote!(FEATURE),
-            Some(defun_prefix) => quote!(#defun_prefix),
-        };
-        let set_prefix = quote! {
-            {
-                let mut prefix = #prefix.try_lock()
-                    .expect("Failed to acquire write lock on module prefix");
-                *prefix = ::rem::const_concat!(#defun_prefix, #separator);
-            }
-        };
         quote! {
             #[allow(non_snake_case)]
             fn #init(#env: &::rem::Env) -> ::rem::Result<::rem::Value<'_>> {
                 const FEATURE: &str = #feature;
-                #set_prefix
                 #hook(#env)?;
                 #env.provide(&FEATURE)
             }

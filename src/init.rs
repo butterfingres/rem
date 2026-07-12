@@ -2,10 +2,7 @@
 //!
 //! [`module`]: attr.module.html
 
-use std::{
-    os, panic,
-    sync::{LazyLock, Mutex},
-};
+use std::{os, panic};
 
 use crate::{Env, Value, Result, ErrorKind};
 
@@ -31,15 +28,6 @@ macro_rules! __module_init {
         }
     };
 }
-
-// TODO: How about defining these in user crate, and requiring #[module] to be at the crate's root?
-// TODO: We probably don't need the mutexes.
-
-/// Prefix to prepend to name of every Lisp function exposed by the dynamic module through the
-/// attribute macro #[[`defun`]].
-///
-/// [`defun`]: attr.defun.html
-pub static __PREFIX__: LazyLock<Mutex<&'static str>> = LazyLock::new(|| Mutex::new(""));
 
 fn debugging() -> bool {
     std::env::var("EMACS_MODULE_RS_DEBUG").unwrap_or_default() == "1"
@@ -94,19 +82,4 @@ where
             2
         }
     }
-}
-
-fn lisp_name(s: &str) -> String {
-    s.replace("_", "-")
-}
-
-pub fn lisp_path(mod_path: &str) -> String {
-    let split = mod_path.split("::");
-    let mut path =
-        __PREFIX__.try_lock().expect("Failed to acquire read lock of module prefix").to_owned();
-    for segment in split.skip(1) {
-        path.push_str(segment);
-        path.push('-');
-    }
-    lisp_name(&path)
 }

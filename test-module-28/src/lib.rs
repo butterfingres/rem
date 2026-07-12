@@ -4,7 +4,7 @@ rem::plugin_is_GPL_compatible!();
 
 mod test_channel;
 
-#[rem::module(name(fn), separator = "/")]
+#[rem::module(name(fn))]
 fn t28(env: &Env) -> Result<()> {
     test_channel::init(env)?;
 
