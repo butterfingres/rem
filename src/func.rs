@@ -255,7 +255,7 @@ where
 pub struct Lambda<'e>(Value<'e>);
 impl<'e> Lambda<'e> {
     pub fn fset(&self, env: &'e Env, name: &str) -> Result<()> {
-        env.call(&subr::FSET, (name, self.0))?;
+        env.call(&subr::FSET, (env.intern(name)?, self.0))?;
         Ok(())
     }
 }
