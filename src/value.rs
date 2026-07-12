@@ -17,7 +17,6 @@ use crate::{subr, Env, Result, FromLisp, Transfer};
 pub struct Value<'e> {
     pub(crate) raw: emacs_value,
     _marker: PhantomData<&'e ()>,
-    // pub env: &'e Env,
 }
 
 impl<'e> Value<'e> {
@@ -116,9 +115,3 @@ impl<'e> Value<'e> {
         env.call(&subr::CDR, (self,))?.into_rust(env)
     }
 }
-
-// impl<'e> PartialEq for Value<'e> {
-//     fn eq(&self, other: &Self) -> bool {
-//         unsafe_raw_call_no_exit!(self.env, eq, self.raw, other.raw)
-//     }
-// }
