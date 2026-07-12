@@ -72,9 +72,6 @@ pub enum ErrorKind {
     /// ```
     #[error("expected: {expected}")]
     WrongTypeUserPtr { expected: &'static str },
-
-    #[error("wrong number of arguments: {found}")]
-    WrongNumberOfArguments { found: usize },
 }
 
 /// A specialized [`Result`] type for Emacs's dynamic modules.
@@ -213,13 +210,6 @@ impl Env {
             ErrorKind::WrongTypeUserPtr { .. } => self
                 .signal_internal_message(&symbol::RUST_WRONG_TYPE_USER_PTR, &format!("{}", err))
                 .unwrap_or_else(|_| panic!("Failed to signal {}", err)),
-            ErrorKind::WrongNumberOfArguments { found } => (|| {
-                self.signal_internal(&symbol::WRONG_NUMBER_OF_ARGUMENTS, {
-                    // we don't know the function
-                    self.list((&symbol::NIL, *found)).unwrap_or(symbol::NIL.try_bind(self)?)
-                })
-            })()
-            .unwrap_or_else(|_| panic!("Failed to signal {}", err)),
         }
     }
 
