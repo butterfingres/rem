@@ -7,10 +7,10 @@ use rem::{defun, Env, Lambda, IntoLisp, Result, Value};
 #[macro_use]
 mod macros;
 
-mod test_basics;
-mod test_eq;
-mod test_error;
-mod test_lifetime;
+mod basics;
+mod eq;
+mod error;
+mod lifetime;
 mod test_vector;
 mod call;
 
@@ -37,10 +37,10 @@ fn t(env: &Env) -> Result<()> {
     hash_map::init(env)?;
     ref_cell::init(env)?;
     vector::init(env)?;
-    test_basics::init(env)?;
-    test_eq::init(env)?;
-    test_error::init(env)?;
-    test_lifetime::init(env)?;
+    basics::init(env)?;
+    eq::init(env)?;
+    error::init(env)?;
+    lifetime::init(env)?;
     test_vector::init(env)?;
     env.lambda(&Inc, Some(c"1+"))?.fset(env, "t/inc")?;
     env.lambda(&Identity, Some(c"Return the input (not a copy)."))?.fset(env, "t/identity")?;
