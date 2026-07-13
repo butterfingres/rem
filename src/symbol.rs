@@ -3,7 +3,7 @@ use crate::{
     global::{GlobalRef, LazyGlobalRef, Symbol},
 };
 
-/// Defines static [`&OnceGlobalRef`] variables that point to corresponding Lisp symbols.
+/// Defines static [`&LazyGlobalRef`] variables that point to corresponding Lisp symbols.
 ///
 /// This macro accepts a space-separated list of identifiers, and determine the Lisp symbol names by
 /// replacing underscores with hyphens, or by explicit mappings in the form of `=> "symbol-name"`.
@@ -13,7 +13,7 @@ use crate::{
 /// If a symbol is bound to a function, the variable can be used to call the function via
 /// [Env::call]. Unlike with [`use_functions!`], this goes through the indirection of symbol lookup.
 ///
-/// [`&OnceGlobalRef`]: OnceGlobalRef
+/// [`&LazyGlobalRef`]: LazyGlobalRef
 /// [`use_functions!`]: crate::use_functions
 #[macro_export]
 macro_rules! use_symbols {

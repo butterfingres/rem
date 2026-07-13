@@ -32,7 +32,7 @@ fn new_string(env: &Env, s: String) -> Result<Value<'_>> {
 /// Returns an error string for unrecognized symbols.
 ///
 /// This illustrates the idiomatic use of `PartialEq` on `Value`: comparing an
-/// incoming argument against `use_symbols!`-imported `OnceGlobalRef` globals
+/// incoming argument against `use_symbols!`-imported `LazyGlobalRef` globals
 /// avoiding repeated `intern` calls on the hot path.
 #[defun(name = ClassifyPosition)]
 fn classify_position(env: &Env, position: Value<'_>) -> Result<String> {

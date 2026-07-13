@@ -1,4 +1,4 @@
-/// Defines static [`&OnceGlobalRef`] variables that point to functions identified by the
+/// Defines static [`&LazyGlobalRef`] variables that point to functions identified by the
 /// corresponding symbols.
 ///
 /// This macro accepts a space-separated list of identifiers, and determine the Lisp symbol names by
@@ -9,7 +9,7 @@
 /// Unlike with [`use_symbols!`], calling the functions through these variables does not involve the
 /// indirection of symbol lookup. That means it is faster, and is not affected by symbol rebinding.
 ///
-/// [`&OnceGlobalRef`]: OnceGlobalRef
+/// [`&LazyGlobalRef`]: crate::LazyGlobalRef
 /// [`use_symbols!`]: crate::use_symbols
 #[macro_export]
 macro_rules! use_functions {

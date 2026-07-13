@@ -164,7 +164,7 @@ where
     ) -> Result<&'a GlobalRef> {
         let g = f(env)?.make_global_ref(env);
         self.inner.set(g).expect("Cannot initialize a global reference more than once");
-        Ok(self.inner.get().expect("Failed to get an initialized OnceGlobalRef"))
+        Ok(self.inner.get().expect("Failed to get an initialized LazyGlobalRef"))
     }
 
     pub fn try_bind<'e, 'g: 'e>(&'g self, env: &'e Env) -> Result<Value<'e>> {

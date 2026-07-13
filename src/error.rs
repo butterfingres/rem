@@ -254,7 +254,7 @@ impl Env {
 
     /// Defines a new Lisp error signal. This is the equivalent of the Lisp function's [`define-error`].
     ///
-    /// The error name can be either a string, a [`Value`], or a [`GlobalRef`].
+    /// The error name can be either a string, a [`Value`], or a [`GlobalRef`](crate::GlobalRef).
     ///
     /// [`define-error`]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Error-Symbols.html
     pub fn define_error<'e, N, P>(&'e self, name: N, message: &str, parents: P) -> Result<Value<'e>>
