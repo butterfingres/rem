@@ -28,23 +28,30 @@
          (error-file (make-temp-file "destructive-fn"))
          (exit-code
           (apply #'call-process
-                 (or (getenv "EMACS") "emacs") nil
-                 (list t error-file)
+                 ;; program
+                 (or (getenv "EMACS") "emacs")
+                 ;; infile
+                 nil
+                 ;; destination
+                 `(:file ,error-file)
+                 ;; display
                  nil
                  (append
                   (list "--batch"
                         "--directory" (getenv "MODULE_DIR"))
                   (when t/support-module-assertions-p '("--module-assertions"))
-                  (list "-l" (expand-file-name "test-module/tests/main.el"
-                                               (getenv "PROJECT_ROOT"))
+                  (list "-L" (file-name-concat default-directory "lisp")
+                        "-l" "ert"
+                        "-l" "test-module-tests"
                         "-f" name))))
          (error-string
           (with-temp-buffer
             (insert-file-contents error-file)
             (string-trim-right
              (buffer-substring-no-properties (point-min) (point-max))))))
-    (unless (= exit-code 0)
-      (error "Exit code: %s. Error: %s" exit-code error-string))))
+    (if (= exit-code 0)
+        (delete-file error-file)
+      (error "File: %s error-file. Exit code: %s. Error: %s" error-file exit-code error-string))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; Type conversion.
