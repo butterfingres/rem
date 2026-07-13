@@ -5,6 +5,8 @@ on:
       - "**/*.rs"
       - "**/*.el"
       - "Cargo.*"
+      - "Makefile.in"
+      - "configure*"
   pull_request:
   workflow_dispatch:
 
