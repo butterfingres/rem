@@ -18,3 +18,4 @@ target/**
 .libs/
 *.l[ao]
 *~
+*.elc
