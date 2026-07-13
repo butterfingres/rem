@@ -2024,7 +2024,12 @@ printf '%s\n' "${rust_target_abi}" >&6; }
 
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target tuple" >&5
 printf %s "checking rust target tuple... " >&6; }
-RUST_TARGET_TUPLE=${rust_target_arch}-${rust_target_vendor}-${rust_target_os}-${rust_target_env}${rust_target_abi}
+RUST_TARGET_TUPLE=${rust_target_arch}-${rust_target_vendor}-${rust_target_os}
+rust_target_suffix="${rust_target_env}${rust_target_abi}"
+if test -n "${rust_target_suffix}"
+then :
+  RUST_TARGET_TUPLE="${RUST_TARGET_TUPLE}-${rust_target_suffix}"
+fi
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${RUST_TARGET_TUPLE}" >&5
 printf '%s\n' "${RUST_TARGET_TUPLE}" >&6; }
 
