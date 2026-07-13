@@ -1,4 +1,6 @@
-(require 't28)
+;; -*- lexical-binding: t; -*-
+
+(require 'test-module-28)
 
 ;;; ----------------------------------------------------------------------------
 ;;; open-channel tests (Emacs 28+).

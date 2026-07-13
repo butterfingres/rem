@@ -4,7 +4,7 @@
 (require 'help)
 
 (require 'rs-module)
-(require 't)
+(require 'test-module)
 
 ;;; ----------------------------------------------------------------------------
 ;;; Test helpers.
