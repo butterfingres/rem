@@ -26,6 +26,7 @@ jobs:
         # with:
         #   components: "clippy, rustfmt"
       - name: Test
+        shell: bash
         run: |
           ./configure CARGOPROFILE=debug
           make check
