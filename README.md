@@ -1,23 +1,22 @@
 # Emacs Module in Rust
-[![crates.io](https://img.shields.io/crates/v/emacs)](https://crates.io/crates/emacs)
-[![doc.rs](https://docs.rs/emacs/badge.svg)](https://docs.rs/emacs/)
-[![GitHub Actions](https://github.com/ubolonton/emacs-module-rs/actions/workflows/main.yml/badge.svg)](https://github.com/ubolonton/emacs-module-rs/actions/workflows/main.yml)
-
-[User Guide](https://ubolonton.github.io/emacs-module-rs/) | [Change Log](https://github.com/ubolonton/emacs-module-rs/blob/master/CHANGELOG.md) | [Examples](https://github.com/ubolonton/emacs-module-rs#example-modules)
+[User Guide](./guide/src/SUMMARY.md) | [Change Log](./CHANGELOG.md)
 
 This provides a high-level binding to `emacs-module`, Emacs's support for dynamic modules.
 
 Code for a minimal module looks like this:
 
 ```rust
-use emacs::{defun, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 
-emacs::plugin_is_GPL_compatible!();
+rem::plugin_is_GPL_compatible!();
 
 #[emacs::module(name = "greeting")]
-fn init(_: &Env) -> Result<()> { Ok(()) }
+fn init(env: &Env) -> Result<()> {
+    env.lambda(&SayHello, None)?.fset(env, "greeting-say-hello")?;
+    Ok(())
+}
 
-#[defun]
+#[defun(name = SayHello)]
 fn say_hello(env: &Env, name: String) -> Result<Value<'_>> {
     env.message(&format!("Hello, {}!", name))
 }
@@ -27,14 +26,6 @@ fn say_hello(env: &Env, name: String) -> Result<Value<'_>> {
 (require 'greeting)
 (greeting-say-hello "Emacs")
 ```
-
-## Example Modules
-
-- [emacs-tree-sitter](https://github.com/ubolonton/emacs-tree-sitter): Binding for tree-sitter, an incremental parsing tool.
-- [pullover](https://github.com/ubolonton/pullover): Use Emacs to edit text for other macOS apps.
-- [test-module](test-module).
-- [emacs-rs-examples](https://github.com/ubolonton/emacs-rs-examples).
-- [magit-libgit2](https://github.com/ubolonton/magit-libgit2): Experimental attempt to speed up magit using libgit2.
 
 ## Development
 
