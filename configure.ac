@@ -9,24 +9,13 @@ AC_PROG_GREP
 AC_PATH_PROG([CARGO], [${CARGO:-cargo}])
 AC_PATH_PROG([RUSTC], [${RUSTC:-rustc}])
 
-AC_MSG_CHECKING([rust target architecture])
-rust_arch="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_arch=' | cut -d \" -f 2)"
-AC_MSG_RESULT([${rust_arch}])
-
-AC_MSG_CHECKING([rust target vendor])
-rust_vendor="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_vendor=' | cut -d \" -f 2)"
-AC_MSG_RESULT([${rust_vendor}])
-
-AC_MSG_CHECKING([rust target os])
-rust_os="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_os=' | cut -d \" -f 2)"
-AC_MSG_RESULT([${rust_os}])
-
-AC_MSG_CHECKING([rust target environment])
-rust_env="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_env=' | cut -d \" -f 2)"
-AC_MSG_RESULT([${rust_env}])
+RUST_TUPLE([architecture], [target_arch])
+RUST_TUPLE([vendor], [target_vendor])
+RUST_TUPLE([operating system], [target_os])
+RUST_TUPLE([environment], [target_env])
 
 AC_MSG_CHECKING([rust target tuple])
-RUST_TARGET_TUPLE=${rust_arch}-${rust_vendor}-${rust_os}-${rust_env}
+RUST_TARGET_TUPLE=${rust_target_arch}-${rust_target_vendor}-${rust_target_os}-${rust_target_env}
 AC_MSG_RESULT([${RUST_TARGET_TUPLE}])
 
 AC_MSG_CHECKING([cargo profile])
@@ -36,5 +25,9 @@ AC_MSG_RESULT([${CARGOPROFILE}])
 AC_MSG_CHECKING([cargo output directory])
 CARGO_OUTPUT_DIR=target/${RUST_TARGET_TUPLE}/${CARGOPROFILE}
 AC_MSG_RESULT([${CARGO_OUTPUT_DIR}])
+
+CARGO_FILE_NAME([rs-module], [RS_MODULE], [rs_module], [rs-module])
+CARGO_FILE_NAME([test-module], [TEST_MODULE], [test_module], [test-module])
+CARGO_FILE_NAME([test-module-28], [TEST_MODULE_28], [test_module_28], [test-module-28])
 
 AC_OUTPUT
