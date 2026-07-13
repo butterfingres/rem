@@ -1,8 +1,12 @@
 #[doc(no_inline)]
-use std::{any::Any, fmt::Display, mem::MaybeUninit, result, thread};
+use std::{
+    any::Any,
+    fmt::{self, Display, Formatter},
+    mem::MaybeUninit,
+    result, thread,
+};
 
 pub use anyhow::{self, Error};
-use thiserror::Error;
 
 use emacs_module::*;
 
@@ -28,18 +32,16 @@ pub struct TempValue {
 ///
 /// This list is intended to grow over time and it is not recommended to exhaustively match against
 /// it.
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum ErrorKind {
     /// An [error] signaled by Lisp code.
     ///
     /// [error]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Signaling-Errors.html
-    #[error("Non-local signal: symbol={symbol:?} data={data:?}")]
     Signal { symbol: TempValue, data: TempValue },
 
     /// A [non-local exit] thrown by Lisp code.
     ///
     /// [non-local exit]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Catch-and-Throw.html
-    #[error("Non-local throw: tag={tag:?} value={value:?}")]
     Throw { tag: TempValue, value: TempValue },
 
     /// An error indicating that the given value is not a `user-ptr` of the expected type.
@@ -70,9 +72,24 @@ pub enum ErrorKind {
     /// (unwrap (wrap 7))   ; 7
     /// (unwrap (wrap-f 7)) ; *** Eval error ***  Wrong type user-ptr: "expected: RefCell"
     /// ```
-    #[error("expected: {expected}")]
     WrongTypeUserPtr { expected: &'static str },
 }
+impl Display for ErrorKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Signal { symbol, data } => {
+                write!(f, "Non-local signal: symbol={symbol:?} data={data:?}")
+            }
+            Self::Throw { tag, value } => {
+                write!(f, "Non-local throw: tag={tag:?} value={value:?}")
+            }
+            Self::WrongTypeUserPtr { expected } => {
+                write!(f, "expected: {expected}")
+            }
+        }
+    }
+}
+impl std::error::Error for ErrorKind {}
 
 /// A specialized [`Result`] type for Emacs's dynamic modules.
 ///
