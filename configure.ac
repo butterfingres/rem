@@ -5,7 +5,7 @@ AC_ARG_VAR([EMACSFLAGS], [Emacs command options])
 AC_ARG_VAR([RUSTC], [Rust compiler command])
 AC_ARG_VAR([RUSTFLAGS], [Rust compiler options])
 AC_ARG_VAR([CARGO], [Cargo command])
-AC_ARG_VAR([CARGOPROFILE], [Cargo profile [default: release]])
+AC_ARG_VAR([CARGOPROFILE], [Cargo profile [default: debug]])
 
 AC_PROG_GREP
 AC_PATH_PROG([EMACS], [${EMACS:-emacs}])
@@ -22,7 +22,7 @@ AC_MSG_RESULT([${RUST_TARGET_TUPLE}])
 AC_SUBST([RUST_TARGET_TUPLE])
 
 AC_MSG_CHECKING([cargo profile])
-AS_IF([test -z "${CARGOPROFILE}"], [CARGOPROFILE="release"])
+AS_IF([test -z "${CARGOPROFILE}"], [CARGOPROFILE="debug"])
 AC_MSG_RESULT([${CARGOPROFILE}])
 AC_SUBST([CARGOPROFILE])
 
