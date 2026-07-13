@@ -15,7 +15,7 @@
   (declare (indent 0))
   `(condition-case err
        ,@body
-     ('error err)))
+     (error err)))
 
 (defun t/sig (sym)
   (let* ((docstring (documentation sym))
@@ -99,7 +99,9 @@
   (let ((v [a b c d e]))
     (should (eq v (t/identity-if-vector v)))
     (should-error (t/identity-if-vector nil) :type 'wrong-type-argument)
-    (should (equal (t/get-error (eq "abc" (t/identity-if-vector "abc")))
+    (should (equal (t/get-error
+                    (let ((s "abc"))
+                      (eq s (t/identity-if-vector s))))
                    '(wrong-type-argument vectorp "abc"))))
   (let ((v [0 1 2 3]))
     (should (eq v (t/stringify-num-vector v)))

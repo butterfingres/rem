@@ -1,0 +1,47 @@
+.POSIX:
+
+EMACS = PROJECT_ROOT="$$(realpath .)"; MODULE_DIR=@CARGO_OUTPUT_DIR@; EMACS_MODULE_RS_DEBUG=1; EMACS=@EMACS@; @EMACS@
+EMACSFLAGS = @EMACSFLAGS@ -Q -batch -L lisp -L @CARGO_OUTPUT_DIR@
+CARGO = RUSTFLAGS=@RUSTFLAGS@; @CARGO@
+
+all:
+
+check: @CARGO_OUTPUT_DIR@/rs-module.@SO_SUFFIX@					\
+	@CARGO_OUTPUT_DIR@/test-module.@SO_SUFFIX@					\
+	@CARGO_OUTPUT_DIR@/test-module-28.@SO_SUFFIX@				\
+	lisp/test-module-tests.elc lisp/test-module-28-tests.elc
+	${EMACS} ${EMACSFLAGS} --directory @CARGO_OUTPUT_DIR@ -l ert -l test-module-tests -f ert-run-tests-batch-and-exit
+	${EMACS} ${EMACSFLAGS} --directory @CARGO_OUTPUT_DIR@ -l ert -l test-module-28-tests -f ert-run-tests-batch-and-exit
+
+@CARGO_OUTPUT_DIR@/rs-module.@SO_SUFFIX@: @CARGO_OUTPUT_DIR@/@RS_MODULE@
+	cp $< $@
+@CARGO_OUTPUT_DIR@/test-module.@SO_SUFFIX@: @CARGO_OUTPUT_DIR@/@TEST_MODULE@
+	cp $< $@
+@CARGO_OUTPUT_DIR@/test-module-28.@SO_SUFFIX@: @CARGO_OUTPUT_DIR@/@TEST_MODULE_28@
+	cp $< $@
+
+# find rs-module -name '*.rs' -o -name '*.toml'
+@CARGO_OUTPUT_DIR@/@RS_MODULE@: rs-module/Cargo.toml rs-module/src/lib.rs
+	${CARGO} build --manifest-path=$< @CARGOBUILDFLAGS@
+
+# find test-module -name '*.rs' -o -name '*.toml'
+@CARGO_OUTPUT_DIR@/@TEST_MODULE@: test-module/Cargo.toml	\
+	test-module/src/basics.rs test-module/src/error.rs		\
+	test-module/src/call.rs test-module/src/vector_2d.rs	\
+	test-module/src/lifetime.rs test-module/src/macros.rs	\
+	test-module/src/eq.rs test-module/src/hash_map.rs		\
+	test-module/src/vector.rs test-module/src/lib.rs		\
+	test-module/src/ref_cell.rs
+	${CARGO} build --manifest-path=$< @CARGOBUILDFLAGS@
+
+# find test-module-28 -name '*.rs' -o -name '*.toml'
+@CARGO_OUTPUT_DIR@/@TEST_MODULE_28@: test-module-28/Cargo.toml		\
+	test-module-28/src/test_channel.rs test-module-28/src/lib.rs
+	${CARGO} build --manifest-path=$< @CARGOBUILDFLAGS@
+
+.el.elc:
+	${EMACS} ${EMACSFLAGS} -l bytecomp -f batch-byte-compile $<
+
+.SUFFIXES: .el .elc
+
+.PHONY: all check
