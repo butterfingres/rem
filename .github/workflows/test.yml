@@ -1,9 +1,7 @@
 on:
   push:
-    branches:
-      - master
-      - gha
     paths:
+      - ".github/workflows/*.yml"
       - "**/*.rs"
       - "**/*.el"
       - "Cargo.*"
