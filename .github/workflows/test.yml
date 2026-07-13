@@ -6,6 +6,7 @@ on:
       - "**/*.el"
       - "Cargo.*"
   pull_request:
+  workflow_request:
 
 jobs:
   check:
