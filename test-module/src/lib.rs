@@ -41,12 +41,12 @@ fn t(env: &Env) -> Result<()> {
     ref_cell::init(env)?;
     vector::init(env)?;
     vector_2d::init(env)?;
-    env.lambda(&Inc, Some(c"1+"))?.fset(env, "t/inc")?;
-    env.lambda(&Identity, Some(c"Return the input (not a copy)."))?.fset(env, "t/identity")?;
-    env.lambda(&ToUppercase, None)?.fset(env, "t/to-uppercase")?;
-    env.lambda(&WrapString, None)?.fset(env, "t/wrap-string")?;
-    env.lambda(&MakeDec, None)?.fset(env, "t/make-dec")?;
-    env.lambda(&MakeIncAndPlus, None)?.fset(env, "t/make-inc-and-plus")?;
+    env.lambda(&Inc, Some(c"1+"))?.fset("t/inc")?;
+    env.lambda(&Identity, Some(c"Return the input (not a copy)."))?.fset("t/identity")?;
+    env.lambda(&ToUppercase, None)?.fset("t/to-uppercase")?;
+    env.lambda(&WrapString, None)?.fset("t/wrap-string")?;
+    env.lambda(&MakeDec, None)?.fset("t/make-dec")?;
+    env.lambda(&MakeIncAndPlus, None)?.fset("t/make-inc-and-plus")?;
 
     Ok(())
 }

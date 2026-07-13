@@ -24,7 +24,7 @@ macro_rules! message {
 // This module should be loaded by Emacs's built-in `module-load`, so it cannot be reloaded.
 #[rem::module(name = "rs-module")]
 fn init(env: &Env) -> Result<Value<'_>> {
-    env.lambda(&Load, None)?.fset(env, "rs-module/load")?;
+    env.lambda(&Load, None)?.fset("rs-module/load")?;
     message!(env, "[rs-module]: defined functions...")
 }
 

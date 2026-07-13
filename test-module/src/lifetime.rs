@@ -149,13 +149,13 @@ fn trigger_double_free_global_ref<'e>(env: &'e Env, func: Value<'e>) -> Result<(
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&GcAfterNewString, None)?.fset(env, "t/gc-after-new-string")?;
-    env.lambda(&GcAfterNewInt, None)?.fset(env, "t/gc-after-new-int")?;
-    env.lambda(&GcAfterNewFloat, None)?.fset(env, "t/gc-after-new-float")?;
-    env.lambda(&GcAfterUninterning, None)?.fset(env, "t/gc-after-uninterning")?;
-    env.lambda(&GcAfterRetrieving, None)?.fset(env, "t/gc-after-retrieving")?;
-    env.lambda(&GcAfterCatching1, None)?.fset(env, "t/gc-after-catching-1")?;
-    env.lambda(&TriggerDoubleFreeGlobalRef, None)?.fset(env, "t/trigger-double-free-global-ref")?;
+    env.lambda(&GcAfterNewString, None)?.fset("t/gc-after-new-string")?;
+    env.lambda(&GcAfterNewInt, None)?.fset("t/gc-after-new-int")?;
+    env.lambda(&GcAfterNewFloat, None)?.fset("t/gc-after-new-float")?;
+    env.lambda(&GcAfterUninterning, None)?.fset("t/gc-after-uninterning")?;
+    env.lambda(&GcAfterRetrieving, None)?.fset("t/gc-after-retrieving")?;
+    env.lambda(&GcAfterCatching1, None)?.fset("t/gc-after-catching-1")?;
+    env.lambda(&TriggerDoubleFreeGlobalRef, None)?.fset("t/trigger-double-free-global-ref")?;
 
     Ok(())
 }

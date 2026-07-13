@@ -90,8 +90,8 @@ pub fn init(env: &Env) -> Result<()> {
         env.signal(&EMACS_MODULE_RS_TEST_ERROR, [])
     }
 
-    env.lambda(&LispDivide, None)?.fset(env, "t/error:lisp-divide")?;
-    env.lambda(&GetType, None)?.fset(env, "t/error:get-type")?;
+    env.lambda(&LispDivide, None)?.fset("t/error:lisp-divide")?;
+    env.lambda(&GetType, None)?.fset("t/error:get-type")?;
     env.lambda(
         &Catch,
         Some(
@@ -100,12 +100,12 @@ pub fn init(env: &Env) -> Result<()> {
 (fn EXPECTED-TAG LAMBDA)",
         ),
     )?
-    .fset(env, "t/error:catch")?;
-    env.lambda(&Apply, None)?.fset(env, "t/error:apply")?;
-    env.lambda(&ReadFile, None)?.fset(env, "t/read-file")?;
-    env.lambda(&Panic, None)?.fset(env, "t/error:panic")?;
-    env.lambda(&Signal, None)?.fset(env, "t/error:signal")?;
-    env.lambda(&SignalCustom, None)?.fset(env, "t/error:signal-custom")?;
+    .fset("t/error:catch")?;
+    env.lambda(&Apply, None)?.fset("t/error:apply")?;
+    env.lambda(&ReadFile, None)?.fset("t/read-file")?;
+    env.lambda(&Panic, None)?.fset("t/error:panic")?;
+    env.lambda(&Signal, None)?.fset("t/error:signal")?;
+    env.lambda(&SignalCustom, None)?.fset("t/error:signal-custom")?;
 
     Ok(())
 }

@@ -12,7 +12,7 @@ rem::plugin_is_GPL_compatible!();
 
 #[emacs::module(name = "greeting")]
 fn init(env: &Env) -> Result<()> {
-    env.lambda(&SayHello, None)?.fset(env, "greeting-say-hello")?;
+    env.lambda(&SayHello, None)?.fset("greeting-say-hello")?;
     Ok(())
 }
 

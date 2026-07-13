@@ -6,7 +6,7 @@ fn using_fset(env: &Env) -> Result<()> {
         env.list(&[(x + y).into_lisp(env)?, (x - y).into_lisp(env)?])
     }
 
-    env.lambda(&SumAndDiff, None)?.fset(env, "t/sum-and-diff")?;
+    env.lambda(&SumAndDiff, None)?.fset("t/sum-and-diff")?;
     // env.fset(prefix!("sum-and-diff"), rem::lambda!(env, sum_and_diff, 2..2)?)?;
 
     Ok(())
@@ -68,11 +68,11 @@ pub fn init(env: &Env) -> Result<()> {
 (fn INPUT)",
         ),
     )?
-    .fset(env, "t/to-lowercase-or-nil")?;
-    env.lambda(&Match, None)?.fset(env, "t/match")?;
-    env.lambda(&IdentityI8, None)?.fset(env, "t/identity-i8")?;
-    env.lambda(&IdentityU8, None)?.fset(env, "t/identity-u8")?;
-    env.lambda(&U64Overflow, None)?.fset(env, "t/u64-overflow")?;
+    .fset("t/to-lowercase-or-nil")?;
+    env.lambda(&Match, None)?.fset("t/match")?;
+    env.lambda(&IdentityI8, None)?.fset("t/identity-i8")?;
+    env.lambda(&IdentityU8, None)?.fset("t/identity-u8")?;
+    env.lambda(&U64Overflow, None)?.fset("t/u64-overflow")?;
     env.lambda(
         &IgnoreArgs,
         Some(
@@ -81,9 +81,9 @@ pub fn init(env: &Env) -> Result<()> {
 (fn _ _)",
         ),
     )?
-    .fset(env, "t/ignore-args")?;
-    env.lambda(&CopyStringContents, None)?.fset(env, "t/copy-string-contents")?;
-    env.lambda(&Sum, None)?.fset(env, "t/sum")?;
+    .fset("t/ignore-args")?;
+    env.lambda(&CopyStringContents, None)?.fset("t/copy-string-contents")?;
+    env.lambda(&Sum, None)?.fset("t/sum")?;
 
     Ok(())
 }

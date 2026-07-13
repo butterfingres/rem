@@ -50,8 +50,8 @@ fn value<'e>(env: &'e Env, function: Value<'e>, arg: Value<'e>) -> Result<Value<
 // }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&List, None)?.fset(env, "t/call-list")?;
-    env.lambda(&ValueFn, None)?.fset(env, "t/call-value")?;
+    env.lambda(&List, None)?.fset("t/call-list")?;
+    env.lambda(&ValueFn, None)?.fset("t/call-value")?;
 
     Ok(())
 }

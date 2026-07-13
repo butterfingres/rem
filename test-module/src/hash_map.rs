@@ -34,10 +34,10 @@ fn set(map: &mut Map, key: String, value: String) -> Result<Option<String>> {
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&Make, None)?.fset(env, "t/hash-map-make")?;
-    env.lambda(&Make1, None)?.fset(env, "t/hash-map-make1")?;
-    env.lambda(&Make2, None)?.fset(env, "t/hash-map-make2")?;
-    env.lambda(&Get, None)?.fset(env, "t/hash-map-get")?;
-    env.lambda(&Set, None)?.fset(env, "t/hash-map-set")?;
+    env.lambda(&Make, None)?.fset("t/hash-map-make")?;
+    env.lambda(&Make1, None)?.fset("t/hash-map-make1")?;
+    env.lambda(&Make2, None)?.fset("t/hash-map-make2")?;
+    env.lambda(&Get, None)?.fset("t/hash-map-get")?;
+    env.lambda(&Set, None)?.fset("t/hash-map-set")?;
     Ok(())
 }

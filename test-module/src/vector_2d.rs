@@ -37,12 +37,12 @@ fn make_vector<'e>(env: &'e Env, length: usize, init: Value<'e>) -> Result<Vecto
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&VecSize, None)?.fset(env, "t/vec-size")?;
-    env.lambda(&VecGet, None)?.fset(env, "t/vec-get")?;
-    env.lambda(&VecSet, None)?.fset(env, "t/vec-set")?;
-    env.lambda(&IdentityIfVector, None)?.fset(env, "t/identity-if-vector")?;
-    env.lambda(&StringifyNumVector, None)?.fset(env, "t/stringify-num-vector")?;
-    env.lambda(&MakeVector, None)?.fset(env, "t/make-vector")?;
+    env.lambda(&VecSize, None)?.fset("t/vec-size")?;
+    env.lambda(&VecGet, None)?.fset("t/vec-get")?;
+    env.lambda(&VecSet, None)?.fset("t/vec-set")?;
+    env.lambda(&IdentityIfVector, None)?.fset("t/identity-if-vector")?;
+    env.lambda(&StringifyNumVector, None)?.fset("t/stringify-num-vector")?;
+    env.lambda(&MakeVector, None)?.fset("t/make-vector")?;
 
     Ok(())
 }

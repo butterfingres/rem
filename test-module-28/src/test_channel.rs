@@ -24,7 +24,7 @@ fn channel_send_from_thread(env: &Env, process: Value<'_>, data: String) -> Resu
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&ChannelSend, None)?.fset(env, "t28/channel-send")?;
-    env.lambda(&ChannelSendFromThread, None)?.fset(env, "t28/channel-send-from-thread")?;
+    env.lambda(&ChannelSend, None)?.fset("t28/channel-send")?;
+    env.lambda(&ChannelSendFromThread, None)?.fset("t28/channel-send-from-thread")?;
     Ok(())
 }

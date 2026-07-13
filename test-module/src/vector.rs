@@ -57,11 +57,11 @@ fn scale_mutably<'e>(env: &'e Env, times: i64, mut v: Value<'e>) -> Result<()> {
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&SwapComponents, None)?.fset(env, "t/vector-2d-swap-components")?;
-    env.lambda(&Make, None)?.fset(env, "t/vector-2d-make")?;
-    env.lambda(&Make1, None)?.fset(env, "t/vector-2d-make1")?;
-    env.lambda(&ToList, None)?.fset(env, "t/vector-2d-to-list")?;
-    env.lambda(&Add, None)?.fset(env, "t/vector-2d-add")?;
-    env.lambda(&ScaleMutably, None)?.fset(env, "t/vector-2d-scale-mutably")?;
+    env.lambda(&SwapComponents, None)?.fset("t/vector-2d-swap-components")?;
+    env.lambda(&Make, None)?.fset("t/vector-2d-make")?;
+    env.lambda(&Make1, None)?.fset("t/vector-2d-make1")?;
+    env.lambda(&ToList, None)?.fset("t/vector-2d-to-list")?;
+    env.lambda(&Add, None)?.fset("t/vector-2d-add")?;
+    env.lambda(&ScaleMutably, None)?.fset("t/vector-2d-scale-mutably")?;
     Ok(())
 }

@@ -52,16 +52,19 @@ where
     })
 }
 
-pub struct Lambda<'e>(Value<'e>);
+pub struct Lambda<'e> {
+    value: Value<'e>,
+    env: &'e Env,
+}
 impl<'e> Lambda<'e> {
-    pub fn fset(&self, env: &'e Env, name: &str) -> Result<()> {
-        env.call(&subr::FSET, (env.intern(name)?, self.0))?;
+    pub fn fset(&self, name: &str) -> Result<()> {
+        self.env.call(&subr::FSET, (self.env.intern(name)?, self.value))?;
         Ok(())
     }
 }
 impl<'e> IntoLisp<'e> for Lambda<'e> {
     fn into_lisp(self, _: &'e Env) -> Result<Value<'e>> {
-        Ok(self.0)
+        Ok(self.value)
     }
 }
 
@@ -85,6 +88,6 @@ impl Env {
             docstring.map(CStr::as_ptr).unwrap_or_default(),
             ptr::from_ref(f).cast_mut().cast()
         )
-        .map(Lambda)
+        .map(|value| Lambda { value, env: self })
     }
 }
