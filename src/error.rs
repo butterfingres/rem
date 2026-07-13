@@ -6,8 +6,6 @@ use std::{
     result, thread,
 };
 
-pub use anyhow::{self, Error};
-
 use emacs_module::*;
 
 use crate::{
@@ -22,6 +20,8 @@ use crate::{
 pub(crate) const RETURN: emacs_funcall_exit = emacs_funcall_exit_return;
 pub(crate) const SIGNAL: emacs_funcall_exit = emacs_funcall_exit_signal;
 pub(crate) const THROW: emacs_funcall_exit = emacs_funcall_exit_throw;
+
+pub type Error = Box<dyn std::error::Error>;
 
 #[derive(Debug)]
 pub struct TempValue {
