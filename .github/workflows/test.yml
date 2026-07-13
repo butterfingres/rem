@@ -26,5 +26,5 @@ jobs:
         #   components: "clippy, rustfmt"
       - name: Test
         run: |
-          cargo xtask build
-          cargo xtask test
+          ./configure CARGOPROFILE=debug
+          make check
