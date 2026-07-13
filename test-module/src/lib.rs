@@ -23,8 +23,8 @@ const MODULE: &str = "t";
 static MODULE_PREFIX: LazyLock<String> = LazyLock::new(|| format!("{}/", MODULE));
 
 // TODO: Add more tests for different combinations of module options.
-#[rem::module(name(fn))]
-fn t(env: &Env) -> Result<()> {
+#[rem::module]
+fn init(env: &Env) -> Result<()> {
     if let Err(env::VarError::NotPresent) = env::var("RUST_BACKTRACE") {
         // Silence panic logging.
         panic::set_hook(Box::new(|_| {}));

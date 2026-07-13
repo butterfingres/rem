@@ -92,7 +92,32 @@ impl Module {
         let env = quote!(env);
         let hook = &self.def.sig.ident;
         let feature = match &self.opts.name {
-            Name::Crate => quote!(::rem::lisp_pkg!()),
+            Name::Crate => quote!({
+                const PATH: &str = module_path!();
+                const LEN: usize = {
+                    let mut i = 0;
+                    while i < PATH.len() {
+                        if PATH.as_bytes()[i] == b':' {
+                            break;
+                        }
+                        i += 1;
+                    }
+                    i
+                };
+                const BUF: [u8; LEN] = {
+                    let mut buf = [0; LEN];
+                    let mut i = 0;
+                    while i < LEN {
+                        buf[i] = match PATH.as_bytes()[i] {
+                            b'_' => b'-',
+                            ch => ch,
+                        };
+                        i += 1;
+                    }
+                    buf
+                };
+                const { unsafe { std::str::from_utf8_unchecked(&BUF) } }
+            }),
             Name::Str(name) => quote!(#name),
             Name::Fn => {
                 let name = util::lisp_name(hook);

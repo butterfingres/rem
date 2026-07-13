@@ -1,5 +1,5 @@
 [package]
-name = "emacs-rs-module"
+name = "rs-module"
 version = "0.21.0"
 edition = "2024"
 authors = ["Nguyễn Tuấn Anh <ubolonton@gmail.com>"]

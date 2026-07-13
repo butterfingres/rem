@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 rem = { path = ".." }
 
 [dev-dependencies]
-emacs-rs-module = { path = "../rs-module" }
+rs-module = { path = "../rs-module" }
 
 [features]
 bindgen = ["rem/bindgen"]
