@@ -19,14 +19,17 @@ jobs:
     runs-on: ${{ matrix.host }}
     steps:
       - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - if: runner.os == "Windows"
+        run:
+          cargo test
       - uses: jcs090218/setup-emacs@v3
+        if: runner.os != "Windows"
         with:
           version: 30.1
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        # with:
-        #   components: "clippy, rustfmt"
       - name: Test
         shell: bash
+        if: runner.os != "Windows"
         run: |
           ./configure CARGOPROFILE=debug
           make check
