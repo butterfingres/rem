@@ -24,7 +24,7 @@ use crate::ErrorKind;
 /// ```
 /// use rem::{defun, Result};
 ///
-/// #[defun]
+/// #[defun(name = Foo)]
 /// fn foo(s: &String) -> Result<&str> {
 ///     Ok(s)
 /// }
@@ -35,7 +35,7 @@ use crate::ErrorKind;
 /// ```compile_fail
 /// use rem::{defun, Result};
 ///
-/// #[defun(user_ptr)]
+/// #[defun(user_ptr, name = Foo)]
 /// fn foo(s: &String) -> Result<&str> {
 ///     Ok(s)
 /// }

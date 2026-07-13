@@ -8,9 +8,12 @@
 //! rem::plugin_is_GPL_compatible!();
 //!
 //! #[rem::module(name = "greeting")]
-//! fn init(_: &Env) -> Result<()> { Ok(()) }
+//! fn init(env: &Env) -> Result<()> {
+//!     env.lambda(&SayHello, None)?.fset("greeting-say-hello")?;
+//!     Ok(())
+//! }
 //!
-//! #[defun]
+//! #[defun(name = SayHello)]
 //! fn say_hello(env: &Env, name: String) -> Result<Value<'_>> {
 //!     env.message(&format!("Hello, {}!", name))
 //! }

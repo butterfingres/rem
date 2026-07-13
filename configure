@@ -597,7 +597,7 @@ TEST_MODULE_28
 TEST_MODULE
 RS_MODULE
 CARGO_OUTPUT_DIR
-CARGOBUILDFLAGS
+CARGOFLAGS
 RUST_TARGET_TUPLE
 GREP
 CARGOPROFILE
@@ -2041,13 +2041,13 @@ printf '%s\n' "${CARGOPROFILE}" >&6; }
 
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking cargo build flags" >&5
 printf %s "checking cargo build flags... " >&6; }
-CARGOBUILDFLAGS="--target=${RUST_TARGET_TUPLE}"
+CARGOFLAGS="--target=${RUST_TARGET_TUPLE}"
 if test "${CARGOPROFILE}" != "debug"
 then :
-  CARGOBUILDFLAGS="${CARGOBUILDFLAGS} --profile=${CARGOPROFILE}"
+  CARGOFLAGS="${CARGOBUILDFLAGS} --profile=${CARGOPROFILE}"
 fi
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${CARGOBUILDFLAGS}" >&5
-printf '%s\n' "${CARGOBUILDFLAGS}" >&6; }
+{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${CARGOFLAGS}" >&5
+printf '%s\n' "${CARGOFLAGS}" >&6; }
 
 
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking cargo output directory" >&5
