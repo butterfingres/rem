@@ -48,5 +48,4 @@ members = [
     "test-module",
     "test-module-28",
     "rs-module",
-    "xtask",
 ]
