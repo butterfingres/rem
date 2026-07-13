@@ -1986,49 +1986,12 @@ fi
 
 
 
-
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target architecture" >&5
-printf %s "checking rust target architecture... " >&6; }
-  rust_target_arch="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_arch=' | cut -d \" -f 2)"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${rust_target_arch}" >&5
-printf '%s\n' "${rust_target_arch}" >&6; }
-
-
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target vendor" >&5
-printf %s "checking rust target vendor... " >&6; }
-  rust_target_vendor="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_vendor=' | cut -d \" -f 2)"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${rust_target_vendor}" >&5
-printf '%s\n' "${rust_target_vendor}" >&6; }
-
-
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target operating system" >&5
-printf %s "checking rust target operating system... " >&6; }
-  rust_target_os="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_os=' | cut -d \" -f 2)"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${rust_target_os}" >&5
-printf '%s\n' "${rust_target_os}" >&6; }
-
-
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target environment" >&5
-printf %s "checking rust target environment... " >&6; }
-  rust_target_env="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_env=' | cut -d \" -f 2)"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${rust_target_env}" >&5
-printf '%s\n' "${rust_target_env}" >&6; }
-
-
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target abi" >&5
-printf %s "checking rust target abi... " >&6; }
-  rust_target_abi="$(${RUSTC} ${RUSTFLAGS} --print cfg | ${GREP} '^target_abi=' | cut -d \" -f 2)"
-  { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${rust_target_abi}" >&5
-printf '%s\n' "${rust_target_abi}" >&6; }
-
-
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking rust target tuple" >&5
 printf %s "checking rust target tuple... " >&6; }
-RUST_TARGET_TUPLE=${rust_target_arch}-${rust_target_vendor}-${rust_target_os}
-rust_target_suffix="${rust_target_env}${rust_target_abi}"
-if test -n "${rust_target_suffix}"
+RUST_TARGET_TUPLE="$(echo ${RUSTFLAGS} | awk 'match($0, /--target(=|[[:space:]]*)([^[:space:]]*)/, matches) { print matches[2] }')"
+if test -z "${RUST_TARGET_TUPLE}"
 then :
-  RUST_TARGET_TUPLE="${RUST_TARGET_TUPLE}-${rust_target_suffix}"
+  RUST_TARGET_TUPLE="$(${RUSTC} --print host-tuple)"
 fi
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${RUST_TARGET_TUPLE}" >&5
 printf '%s\n' "${RUST_TARGET_TUPLE}" >&6; }

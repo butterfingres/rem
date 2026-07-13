@@ -15,16 +15,9 @@ AC_PATH_PROG([CARGO], [${CARGO:-cargo}])
 AC_SUBST([CARGO])
 AC_PATH_PROG([RUSTC], [${RUSTC:-rustc}])
 
-RUST_TUPLE([architecture], [target_arch])
-RUST_TUPLE([vendor], [target_vendor])
-RUST_TUPLE([operating system], [target_os])
-RUST_TUPLE([environment], [target_env])
-RUST_TUPLE([abi], [target_abi])
-
 AC_MSG_CHECKING([rust target tuple])
-RUST_TARGET_TUPLE=${rust_target_arch}-${rust_target_vendor}-${rust_target_os}
-rust_target_suffix="${rust_target_env}${rust_target_abi}"
-AS_IF([test -n "${rust_target_suffix}"], [RUST_TARGET_TUPLE="${RUST_TARGET_TUPLE}-${rust_target_suffix}"])
+[RUST_TARGET_TUPLE="$(echo ${RUSTFLAGS} | awk 'match($0, /--target(=|[[:space:]]*)([^[:space:]]*)/, matches) { print matches[2] }')"]
+AS_IF([test -z "${RUST_TARGET_TUPLE}"], [RUST_TARGET_TUPLE="$(${RUSTC} --print host-tuple)"])
 AC_MSG_RESULT([${RUST_TARGET_TUPLE}])
 AC_SUBST([RUST_TARGET_TUPLE])
 
