@@ -1,9 +1,0 @@
-[book]
-title = "emacs-module-rs 0.21"
-authors = ["ubolonton"]
-src = "src"
-
-[output.html]
-additional-css = ["custom.css"]
-additional-js = ["hljs-load-langs.js"]
-preferred-dark-theme = "coal"
