@@ -9,11 +9,12 @@ on:
 
 jobs:
   check:
-    matrix:
-      include:
-        - host: ubuntu-latest
-        - host: windows-latest
-        - host: macos-latest
+    strategy:
+      matrix:
+        include:
+          - host: ubuntu-latest
+          - host: windows-latest
+          - host: macos-latest
     runs-on: ${{ matrix.host }}
     steps:
       - uses: actions/checkout@v6
