@@ -1,3 +1,5 @@
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="./style.css"/>
+
 * Calling lispfunctions.
 ** Built-in functions
 Frequently-used lisp functions are exposed as methods on =Env=.
