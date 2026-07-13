@@ -5,6 +5,7 @@ AC_CANONICAL_TARGET
 AC_ARG_VAR([RUSTC], [Rust compiler command])
 AC_ARG_VAR([RUSTFLAGS], [Rust compiler options])
 AC_ARG_VAR([CARGO], [Cargo command])
+AC_ARG_VAR([CARGOPROFILE], [Cargo profile [default: release]])
 
 AC_PROG_GREP
 AC_PATH_PROG([CARGO], [${CARGO:-cargo}])
@@ -29,5 +30,13 @@ AC_MSG_RESULT([${rust_env}])
 AC_MSG_CHECKING([rust target tuple])
 RUST_TARGET_TUPLE=${rust_arch}-${rust_vendor}-${rust_os}-${rust_env}
 AC_MSG_RESULT([${RUST_TARGET_TUPLE}])
+
+AC_MSG_CHECKING([cargo profile])
+AS_IF([test -z "${CARGOPROFILE}"], [CARGOPROFILE="release"])
+AC_MSG_RESULT([${CARGOPROFILE}])
+
+AC_MSG_CHECKING([cargo output directory])
+CARGO_OUTPUT_DIR=target/${RUST_TARGET_TUPLE}/${CARGOPROFILE}
+AC_MSG_RESULT([${CARGO_OUTPUT_DIR}])
 
 AC_OUTPUT
