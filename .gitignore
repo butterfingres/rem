@@ -16,4 +16,7 @@ target/**
 .libs/
 *.l[ao]
 *~
+
+*.html
+
 *.elc
