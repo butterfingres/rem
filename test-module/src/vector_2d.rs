@@ -1,48 +1,67 @@
-//! Testing bindings for vector functions (vec_get, vec_set, vec_size).
+//! Testing a custom vector (user-ptr).
 
-use rem::{defun, Env, Result, Value, Vector};
+use rem::{defun, Env, IntoLisp, Result, Value};
 
-#[defun(name = VecSize)]
-fn vec_size(v: Vector) -> Result<usize> {
-    Ok(v.len())
+struct Vector2d {
+    pub x: i64,
+    pub y: i64,
 }
 
-#[defun(name = VecGet)]
-fn vec_get<'e>(env: &'e Env, v: Vector<'e>, i: i64) -> Result<Value<'e>> {
-    v.get(env, i as usize)
+custom_types! {
+    Vector2d;
 }
 
-#[defun(name = VecSet)]
-fn vec_set(env: &Env, v: Vector, i: i64, value: Value) -> Result<()> {
-    v.set(env, i as usize, value)
-}
-
-#[defun(name = IdentityIfVector)]
-fn identity_if_vector(v: Vector) -> Result<Vector> {
+#[defun(name = SwapComponents)]
+fn swap_components<'e>(env: &'e Env, mut v: Value<'e>) -> Result<Value<'e>> {
+    let vec: &mut Vector2d = unsafe { v.get_mut(env)? };
+    vec.x ^= vec.y;
+    vec.y ^= vec.x;
+    vec.x ^= vec.y;
     Ok(v)
 }
 
-#[defun(name = StringifyNumVector)]
-fn stringify_num_vector<'e>(env: &'e Env, v: Vector<'e>) -> Result<Vector<'e>> {
-    for i in 0..v.len() {
-        let x: i64 = v.get(env, i)?;
-        v.set(env, i, format!("{}", x))?;
-    }
-    Ok(v)
+#[defun(user_ptr(direct), name = Make)]
+fn make(x: i64, y: i64) -> Result<Vector2d> {
+    Ok(Vector2d { x, y })
 }
 
-#[defun(name = MakeVector)]
-fn make_vector<'e>(env: &'e Env, length: usize, init: Value<'e>) -> Result<Vector<'e>> {
-    env.make_vector(length, init)
+// Same with the above, but manually.
+#[defun(name = Make1)]
+fn make1(x: i64, y: i64) -> Result<Box<Vector2d>> {
+    Ok(Box::new(Vector2d { x, y }))
+}
+
+#[defun(name = ToList)]
+fn to_list<'e>(env: &'e Env, v: Value<'_>) -> Result<Value<'e>> {
+    v.into_rust::<&Vector2d>(env)?;
+    let v: &Vector2d = v.into_rust(env)?;
+    let x = v.x.into_lisp(env)?;
+    let y = v.y.into_lisp(env)?;
+    env.list(&[x, y])
+}
+
+#[defun(user_ptr(direct), name = Add)]
+fn add<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Vector2d> {
+    let a: &Vector2d = a.into_rust(env)?;
+    let b: &Vector2d = b.into_rust(env)?;
+    let (x, y) = (b.x + a.x, b.y + a.y);
+    Ok(Vector2d { x, y })
+}
+
+#[defun(name = ScaleMutably)]
+fn scale_mutably<'e>(env: &'e Env, times: i64, mut v: Value<'e>) -> Result<()> {
+    let v = unsafe { v.get_mut::<Vector2d>(env)? };
+    v.x *= times;
+    v.y *= times;
+    Ok(())
 }
 
 pub fn init(env: &Env) -> Result<()> {
-    env.lambda(&VecSize, None)?.fset("t/vec-size")?;
-    env.lambda(&VecGet, None)?.fset("t/vec-get")?;
-    env.lambda(&VecSet, None)?.fset("t/vec-set")?;
-    env.lambda(&IdentityIfVector, None)?.fset("t/identity-if-vector")?;
-    env.lambda(&StringifyNumVector, None)?.fset("t/stringify-num-vector")?;
-    env.lambda(&MakeVector, None)?.fset("t/make-vector")?;
-
+    env.lambda(&SwapComponents, None)?.fset("t/vector-2d-swap-components")?;
+    env.lambda(&Make, None)?.fset("t/vector-2d-make")?;
+    env.lambda(&Make1, None)?.fset("t/vector-2d-make1")?;
+    env.lambda(&ToList, None)?.fset("t/vector-2d-to-list")?;
+    env.lambda(&Add, None)?.fset("t/vector-2d-add")?;
+    env.lambda(&ScaleMutably, None)?.fset("t/vector-2d-scale-mutably")?;
     Ok(())
 }
