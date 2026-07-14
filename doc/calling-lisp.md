@@ -1,6 +1,6 @@
 # Calling Lisp Functions
 
-Frequently-used Lisp functions are exposed as methods on `env`:
+Frequently-used Lisp functions are exposed as methods on [`Env`](crate::Env):
 
 ```rust
 use rem::IntoLisp;
@@ -21,13 +21,15 @@ fn foo(env: &rem::Env) -> rem::Result<()> {
 }
 ```
 
-To call arbitrary Lisp functions, use `env.call(func, args)`.
+To call arbitrary Lisp functions, use [`env.call(func, args)`](crate::Env::call).
 - `func` can be:
   + A string identifying a named function in Lisp.
-  + Any Lisp-callable `Value` (a symbol with a function assigned, a lambda, a subr). This can also be written as `func.call(args)`.
+  + Any Lisp-callable [`Value`](crate::Value) (a symbol with a function
+    assigned, a lambda, a subr). This can also be written as
+    [`func.call(env, args)`](crate::Value::call).
 - `args` can be:
-  + An array, or a slice of `Value`.
-  + A tuple of different types, each satisfying the `IntoLisp` trait.
+  + An array, or a slice of [`Value`](crate::Value).
+  + A tuple of different types, each satisfying the [`IntoLisp`](crate::IntoLisp) trait.
 
 ```rust
 use rem::{Env, Result};
@@ -55,9 +57,9 @@ fn foo(env: &rem::Env) -> rem::Result<()> {
 ```
 
 ```rust
-// (add-hook 'text-mode-hook 'variable-pitch-mode)
 #[rem::defun]
 fn foo(env: &rem::Env) -> rem::Result<()> {
+    // (add-hook 'text-mode-hook 'variable-pitch-mode)
     env.call("add-hook", [
         env.intern("text-mode-hook")?,
         env.intern("variable-pitch-mode")?,
@@ -68,11 +70,18 @@ fn foo(env: &rem::Env) -> rem::Result<()> {
 
 ## Caching Symbols and Functions
 
-Every call to `env.intern` and every symbol-lookup in `env.call("name", ...)` does a hash-table lookup inside Emacs. For hot paths, cache the result with `use_symbols!` or `use_functions!`.
+Every call to [`Env::intern`](crate::Env::intern) and every
+symbol-lookup in [`Env::call`](crate::Env::call) does a hash-table
+lookup inside Emacs. For hot paths, cache the result with
+[`use_symbols!`](crate::use_symbols) or
+[`use_functions!`](crate::use_functions).
 
-### `use_symbols!`
+### [`use_symbols!`](crate::use_symbols)
 
-`use_symbols!` declares `static` variables of type `&OnceGlobalRef` that hold interned symbol values. The variables are initialized once when the module is loaded.
+[`use_symbols!`](crate::use_symbols) declares `static` variables of
+type [`&LazyGlobalRef`](crate::LazyGlobalRef) that hold interned
+symbol values. The variables are initialized once when the module is
+loaded.
 
 ```rust
 use rem::{defun, use_symbols, Result, Value};
@@ -97,8 +106,6 @@ fn classify(env: &rem::Env, pos: Value<'_>) -> Result<String> {
 }
 ```
 
-The Lisp name for each symbol is derived by replacing `_` with `-`. Use `=> "lisp-name"` to override:
-
 ```rust
 rem::use_symbols! {
     NIL => "nil",
@@ -107,11 +114,17 @@ rem::use_symbols! {
 }
 ```
 
-If the symbol is bound to a function, you can call it via `env.call(symbol_var, args)`. This goes through symbol lookup on each call. Use `use_functions!` to avoid that indirection.
+If the symbol is bound to a function, you can call it via
+[`env.call(symbol_var, args)`](crate::Env::call). This goes through
+symbol lookup on each call. Use
+[`use_functions!`](crate::use_functions) to avoid that indirection.
 
-### `use_functions!`
+### [`use_functions!`](crate::use_functions)
 
-`use_functions!` is like `use_symbols!`, but stores the function object directly (via `indirect-function`). Calls through these variables skip symbol lookup entirely.
+[`use_functions!`](crate::use_functions) is like
+[`use_symbols!`](crate::use_symbols), but stores the function object
+directly (via `indirect-function`). Calls through these variables skip
+symbol lookup entirely.
 
 ```rust
 use rem::{defun, use_functions, Env, Result, Value};
@@ -129,6 +142,13 @@ fn greet_parsed(env: &Env, s: String) -> Result<()> {
 }
 ```
 
-**Trade-off**: `use_functions!` is faster than `use_symbols!` for repeated calls because it skips symbol lookup. However, if the symbol is later rebound to a different function, the cached reference still points to the original function. Use `use_symbols!` when you need to respect runtime rebinding; use `use_functions!` for built-in and primitive functions where rebinding is not expected.
+**Trade-off**: [`use_functions!`](crate::use_functions) is faster than
+  [`use_symbols!`](crate::use_symbols) for repeated calls because it
+  skips symbol lookup. However, if the symbol is later rebound to a
+  different function, the cached reference still points to the
+  original function. Use [`use_symbols!`](crate::use_symbols) when you
+  need to respect runtime rebinding; use
+  [`use_functions!`](crate::use_functions) for built-in and primitive
+  functions where rebinding is not expected.
 
 Both macros can be used only once per Rust `mod`. To cover multiple `mod`s, place one invocation in each.

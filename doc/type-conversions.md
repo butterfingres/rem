@@ -108,7 +108,7 @@ fn foo(env: &Env) -> Result<()> {
 }
 ```
 
-`GlobalRef` and `OnceGlobalRef` implement `PartialEq<Value>` (and vice versa), so you can compare a cached global against an incoming argument without rebinding:
+`GlobalRef` and `LazyGlobalRef` implement `PartialEq<Value>` (and vice versa), so you can compare a cached global against an incoming argument without rebinding:
 
 ```rust
 use rem::{use_symbols, Env, Result, Value};

@@ -14,6 +14,7 @@ When calling a Lisp function, it's usually a good idea to propagate signaled err
 
 ```rust
 # use rem::{Env, ErrorKind, Result};
+# #[rem::defun]
 # fn foo(env: &Env) -> Result<()> {
 #     let some_text = "";
 match env.call("insert", (some_text,)) {

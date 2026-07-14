@@ -1,12 +1,26 @@
 # Embedding Rust Values in Lisp
 
-Speeding up Emacs is one of the goals of dynamic modules. Too many back-and-forth conversions between Rust's data structures and Lisp's can defeat the purpose. The solution to this is embedding Rust data structures in opaque `user-ptr` Lisp objects.
+Speeding up Emacs is one of the goals of dynamic modules. Too many
+back-and-forth conversions between Rust's data structures and Lisp's
+can defeat the purpose. The solution to this is embedding Rust data
+structures in opaque `user-ptr` Lisp objects.
 
-If a type implements `Transfer`, its heap-allocated (`Box`-wrapped) values can be moved into the Lisp runtime, where the GC will become its owner.
+If a type implements [`Transfer`](crate::Transfer), its heap-allocated
+([`Box`]-wrapped) values can be moved into the Lisp runtime, where the
+GC will become its owner.
 
-Lisp code sees these as opaque "embedded user pointers", whose printed representation is something like `#<user-ptr ptr=0x102e10b60 finalizer=0x103c9c390>`. For these values to be useful, a Rust module needs to export additional functions to manipulate them.
+Lisp code sees these as opaque "embedded user pointers", whose printed
+representation is something like `#<user-ptr ptr=0x102e10b60
+finalizer=0x103c9c390>`. For these values to be useful, a Rust module
+needs to export additional functions to manipulate them.
 
-Since these values are owned by the GC, Rust code can only safely access them through immutable references. Therefore, interior mutability is usually needed. As a result, `Transfer` is implemented for the smart pointer types `RefCell`, `Mutex`, `RwLock`, `Rc`, and `Arc`.
+Since these values are owned by the GC, Rust code can only safely
+access them through immutable references. Therefore, interior
+mutability is usually needed. As a result,
+[`Transfer`](crate::Transfer) is implemented for the smart pointer
+types [`RefCell`](std::cell::RefCell), [`Mutex`](std::sync::Mutex),
+[`RwLock`](std::sync::RwLock), [`Rc`](std::rc::Rc), and
+[`Arc`](std::sync::Arc).
 
 To return an embedded value, a function needs to be exported with a `user_ptr` option:
 - `user_ptr`: Embedding through a `RefCell`. This is suitable for common use cases, where module functions can borrow the underlying data back for read/write. It is safe because Lisp threads are subjected to the GIL. `BorrowError`/`BorrowMutError` may be signaled at runtime, depending on how module functions call back into the Lisp runtime.
