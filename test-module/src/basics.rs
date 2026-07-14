@@ -1,7 +1,7 @@
 use rem::{defun, Env, IntoLisp, Result, Value};
 
 fn using_fset(env: &Env) -> Result<()> {
-    #[defun(name = SumAndDiff)]
+    #[defun]
     fn sum_and_diff<'e>(env: &'e Env, x: i64, y: i64) -> Result<Value<'e>> {
         env.list(&[(x + y).into_lisp(env)?, (x - y).into_lisp(env)?])
     }
@@ -12,7 +12,7 @@ fn using_fset(env: &Env) -> Result<()> {
     Ok(())
 }
 
-#[defun(name = ToLowercaseOrNil)]
+#[defun]
 fn to_lowercase_or_nil(env: &Env, input: Option<String>) -> Result<Value<'_>> {
     let output = input.map(|s| s.to_lowercase());
     // This tests IntoLisp for Option<&str>.
@@ -26,34 +26,34 @@ fn r#match() -> Result<()> {
     Ok(())
 }
 
-#[defun(name = IdentityI8)]
+#[defun]
 fn identity_i8(i: i8) -> Result<i8> {
     Ok(i)
 }
 
-#[defun(name = IdentityU8)]
+#[defun]
 fn identity_u8(i: u8) -> Result<u8> {
     Ok(i)
 }
 
-#[defun(name = U64Overflow)]
+#[defun]
 fn u64_overflow() -> Result<u64> {
     Ok(u64::MAX)
 }
 
-#[defun(name = IgnoreArgs)]
+#[defun]
 fn ignore_args(_: &Env, _: u8, _: u16) -> Result<()> {
     Ok(())
 }
 
-#[defun(name = CopyStringContents)]
+#[defun]
 fn copy_string_contents(env: &Env, v: Value, size: usize) -> Result<String> {
     let mut buffer = vec![0u8; size];
     let s = v.copy_string_contents(env, &mut buffer)?;
     Ok(String::from_utf8_lossy(s).to_string())
 }
 
-#[defun(name = Sum)]
+#[defun]
 fn sum(x: i64, y: i64) -> Result<i64> {
     Ok(x + y)
 }

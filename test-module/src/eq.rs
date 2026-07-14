@@ -10,20 +10,20 @@ use_symbols! {
 }
 
 /// Return t if A and B are `eq` (using Rust's `==` operator on `Value`).
-#[defun(name = ValueEq)]
+#[defun]
 fn value_eq<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Value<'e>> {
     (a.eq(env, b)).into_lisp(env)
 }
 
 /// Return t if GLOBAL-REF is `eq` to VALUE (using Rust's `==` on `GlobalRef`).
-#[defun(name = GlobalRefEq)]
+#[defun]
 fn global_ref_eq<'e>(env: &'e Env, global: GlobalRef, value: Value<'e>) -> Result<Value<'e>> {
     (global.eq(env, value)).into_lisp(env)
 }
 
 /// Return a newly allocated string with the given content, for testing that equal
 /// strings are not `eq`.
-#[defun(name = NewString)]
+#[defun]
 fn new_string(env: &Env, s: String) -> Result<Value<'_>> {
     s.into_lisp(env)
 }
@@ -34,7 +34,7 @@ fn new_string(env: &Env, s: String) -> Result<Value<'_>> {
 /// This illustrates the idiomatic use of `PartialEq` on `Value`: comparing an
 /// incoming argument against `use_symbols!`-imported `LazyGlobalRef` globals
 /// avoiding repeated `intern` calls on the hot path.
-#[defun(name = ClassifyPosition)]
+#[defun]
 fn classify_position(env: &Env, position: Value<'_>) -> Result<String> {
     if LEFT.eq(env, position) {
         Ok("left".to_owned())

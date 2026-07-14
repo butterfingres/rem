@@ -2,27 +2,27 @@
 
 use rem::{defun, Env, Result, Value, Vector};
 
-#[defun(name = VecSize)]
+#[defun]
 fn vec_size(v: Vector) -> Result<usize> {
     Ok(v.len())
 }
 
-#[defun(name = VecGet)]
+#[defun]
 fn vec_get<'e>(env: &'e Env, v: Vector<'e>, i: i64) -> Result<Value<'e>> {
     v.get(env, i as usize)
 }
 
-#[defun(name = VecSet)]
+#[defun]
 fn vec_set(env: &Env, v: Vector, i: i64, value: Value) -> Result<()> {
     v.set(env, i as usize, value)
 }
 
-#[defun(name = IdentityIfVector)]
+#[defun]
 fn identity_if_vector(v: Vector) -> Result<Vector> {
     Ok(v)
 }
 
-#[defun(name = StringifyNumVector)]
+#[defun]
 fn stringify_num_vector<'e>(env: &'e Env, v: Vector<'e>) -> Result<Vector<'e>> {
     for i in 0..v.len() {
         let x: i64 = v.get(env, i)?;
@@ -31,7 +31,7 @@ fn stringify_num_vector<'e>(env: &'e Env, v: Vector<'e>) -> Result<Vector<'e>> {
     Ok(v)
 }
 
-#[defun(name = MakeVector)]
+#[defun]
 fn make_vector<'e>(env: &'e Env, length: usize, init: Value<'e>) -> Result<Vector<'e>> {
     env.make_vector(length, init)
 }

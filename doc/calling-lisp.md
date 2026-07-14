@@ -31,7 +31,7 @@ To call arbitrary Lisp functions, use `env.call(func, args)`.
 
 ```rust
 use rem::{Env, Result};
-#[rem::defun(name = Foo)]
+#[rem::defun]
 fn foo(env: &Env) -> Result<()> {
     // (list "str" 2)
     env.call("list", ("str", 2))?;
@@ -121,7 +121,7 @@ use_functions! {
     STRING_TO_NUMBER => "string-to-number",
 }
 
-#[defun(name = GreetParsed)]
+#[defun]
 fn greet_parsed(env: &Env, s: String) -> Result<()> {
     let n: i64 = env.call(&STRING_TO_NUMBER, (s,))?.into_rust(env)?;
     env.call(&MESSAGE, (format!("Got {}", n),))?;

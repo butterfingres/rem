@@ -26,7 +26,7 @@ impl<'e> Value<'e> {
     ///
     /// ```
     /// # use rem::{defun, Env, Value, Result, Vector};
-    /// #[defun(name = MapcEnumerateVec)]
+    /// #[defun]
     /// fn mapc_range(env: &Env, function: Value, start: i64, end: i64) -> Result<()> {
     ///     for i in start..end {
     ///         function.call(env, (i,))?;
@@ -88,8 +88,8 @@ impl Env {
     ///
     /// ```
     /// # use rem::{defun, Env, Value, Result, Vector};
-    /// #[defun(name = List1)]
-    /// fn listify_vec<'e>(env: &'e Env, val: Value<'e>) -> Result<Value<'e>> {
+    /// #[defun]
+    /// fn list_1<'e>(env: &'e Env, val: Value<'e>) -> Result<Value<'e>> {
     ///     env.call("list", (val,))
     /// }
     /// ```

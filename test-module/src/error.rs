@@ -6,7 +6,7 @@ use rem::{defun, Env, Result, Value};
 use rem::ErrorKind;
 use rem::ResultExt;
 
-#[defun(name = LispDivide)]
+#[defun]
 fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
     fn inner(env: &Env, x: i64, y: i64) -> Result<Value<'_>> {
         call!(env, "/", x, y)
@@ -19,7 +19,7 @@ fn lisp_divide(env: &Env, x: Value<'_>, y: Value<'_>) -> Result<i64> {
     foo(env, x, y)?.into_rust(env)
 }
 
-#[defun(name = GetType)]
+#[defun]
 fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     match f.call(env, []) {
         Err(error) => {
@@ -34,8 +34,7 @@ fn get_type<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     }
 }
 
-///
-#[defun(name = Catch)]
+#[defun]
 fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result<Value<'e>> {
     match lambda.call(env, []) {
         Err(error) => {
@@ -53,22 +52,22 @@ fn catch<'e>(env: &'e Env, expected_tag: Value<'e>, lambda: Value<'e>) -> Result
 }
 
 /// Call `apply` on LAMBDA and ARGS, propagating any signaled error.
-#[defun(name = Apply)]
+#[defun]
 fn apply<'e>(env: &'e Env, lambda: Value<'e>, args: Value<'e>) -> Result<Value<'e>> {
     env.call("apply", (lambda, args))
 }
 
-#[defun(name = ReadFile)]
+#[defun]
 fn read_file<'e>(env: &Env, path: String) -> Result<String> {
     fs::read_to_string(path).or_signal(env, &EMRS_FILE_ERROR)
 }
 
-#[defun(name = Panic)]
+#[defun]
 fn panic(message: String) -> Result<()> {
     panic!("{}", message)
 }
 
-#[defun(name = Signal)]
+#[defun]
 fn signal(env: &Env, symbol: Value, message: String) -> Result<()> {
     env.signal(symbol, (message,))
 }
@@ -85,7 +84,7 @@ pub fn init(env: &Env) -> Result<()> {
     env.define_error(&EMACS_MODULE_RS_TEST_ERROR, "Hello", [RUST_ERROR.try_bind(env)?])?;
     env.define_error(&ERROR_DEFINED_WITHOUT_PARENT, "Error", [])?;
 
-    #[defun(name = SignalCustom)]
+    #[defun]
     fn signal_custom(env: &Env) -> Result<()> {
         env.signal(&EMACS_MODULE_RS_TEST_ERROR, [])
     }

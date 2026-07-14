@@ -55,18 +55,18 @@ fn init(env: &Env) -> Result<()> {
 // Below are tests for functions declared at root of the crate. Don't move them elsewhere.
 
 // Docstring above, with space.
-#[defun(name = Inc)]
+#[defun]
 fn inc(x: i64) -> Result<i64> {
     Ok(x + 1)
 }
 
 // Docstring below, without space.
-#[defun(name = Identity)]
+#[defun]
 fn identity(x: Value) -> Result<Value> {
     Ok(x)
 }
 
-#[defun(name = ToUppercase)]
+#[defun]
 fn to_uppercase(s: String) -> Result<String> {
     Ok(s.to_uppercase())
 }
@@ -80,28 +80,28 @@ custom_types! {
     StringWrapper;
 }
 
-#[defun(name = WrapString)]
+#[defun]
 fn wrap_string(s: String) -> Result<Box<StringWrapper>> {
     Ok(Box::new(StringWrapper { s }))
 }
 
-#[defun(name = MakeDec)]
+#[defun]
 fn make_dec(env: &Env) -> Result<Lambda<'_>> {
-    #[defun(name = Dec)]
+    #[defun]
     fn dec(i: i64) -> Result<i64> {
         Ok(i - 1)
     }
     env.lambda(&Dec, Some(c"decrement"))
 }
 
-#[defun(name = MakeIncAndPlus)]
+#[defun]
 fn make_inc_and_plus(env: &Env) -> Result<Value<'_>> {
-    #[defun(name = Inc)]
+    #[defun]
     fn inc(i: i64) -> Result<i64> {
         Ok(i + 1)
     }
 
-    #[defun(name = Plus)]
+    #[defun]
     fn plus(x: i64, y: i64) -> Result<i64> {
         Ok(x + y)
     }

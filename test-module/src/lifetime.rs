@@ -51,19 +51,19 @@ where
 // Before fixing:
 // - macOS: Segmentation fault
 // - Linux: Segmentation fault
-#[defun(name = GcAfterNewString)]
+#[defun]
 fn gc_after_new_string(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || "0".into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
-#[defun(name = GcAfterNewInt)]
+#[defun]
 fn gc_after_new_int(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || 5.into_lisp(env), print)
 }
 
 // Primitive types supposedly have no issue.
-#[defun(name = GcAfterNewFloat)]
+#[defun]
 fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
     create_collect_use(env, 2, || 5.8.into_lisp(env), print)
 }
@@ -71,7 +71,7 @@ fn gc_after_new_float(env: &Env) -> Result<Value<'_>> {
 // Before fixing:
 // - macOS: Segmentation fault
 // - Linux: Segmentation fault
-#[defun(name = GcAfterUninterning)]
+#[defun]
 fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
     // Wouldn't fail if count is 1 or 2.
     create_collect_use(
@@ -90,7 +90,7 @@ fn gc_after_uninterning(env: &Env) -> Result<Value<'_>> {
 // Before fixing:
 // - macOS: Abort trap (since the violation happens in Rust)
 // - Linux: wrong-type-argument (maybe the runtime is a bit different in Linux?)
-#[defun(name = GcAfterRetrieving)]
+#[defun]
 fn gc_after_retrieving(env: &Env) -> Result<Value<'_>> {
     create_collect_use(
         env,
@@ -106,7 +106,7 @@ fn gc_after_retrieving(env: &Env) -> Result<Value<'_>> {
     )
 }
 
-#[defun(name = GcAfterCatching1)]
+#[defun]
 fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
     create_collect_use(
         env,
@@ -133,7 +133,7 @@ fn gc_after_catching_1<'e>(env: &'e Env, f: Value<'e>) -> Result<Value<'e>> {
 /// With a correct implementation of Drop for Env, this function should crash Emacs
 /// when it is run with the '--module-assertions' flag, regardless of whether FUNC
 /// triggered a non-local exit.
-#[defun(name = TriggerDoubleFreeGlobalRef)]
+#[defun]
 fn trigger_double_free_global_ref<'e>(env: &'e Env, func: Value<'e>) -> Result<()> {
     eprintln!("0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     let _ = env.list((1, 2))?;

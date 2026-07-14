@@ -11,7 +11,7 @@ custom_types! {
     Vector2d;
 }
 
-#[defun(name = SwapComponents)]
+#[defun]
 fn swap_components<'e>(env: &'e Env, mut v: Value<'e>) -> Result<Value<'e>> {
     let vec: &mut Vector2d = unsafe { v.get_mut(env)? };
     vec.x ^= vec.y;
@@ -20,18 +20,18 @@ fn swap_components<'e>(env: &'e Env, mut v: Value<'e>) -> Result<Value<'e>> {
     Ok(v)
 }
 
-#[defun(user_ptr(direct), name = Make)]
+#[defun(user_ptr(direct))]
 fn make(x: i64, y: i64) -> Result<Vector2d> {
     Ok(Vector2d { x, y })
 }
 
 // Same with the above, but manually.
-#[defun(name = Make1)]
+#[defun]
 fn make1(x: i64, y: i64) -> Result<Box<Vector2d>> {
     Ok(Box::new(Vector2d { x, y }))
 }
 
-#[defun(name = ToList)]
+#[defun]
 fn to_list<'e>(env: &'e Env, v: Value<'_>) -> Result<Value<'e>> {
     v.into_rust::<&Vector2d>(env)?;
     let v: &Vector2d = v.into_rust(env)?;
@@ -40,7 +40,7 @@ fn to_list<'e>(env: &'e Env, v: Value<'_>) -> Result<Value<'e>> {
     env.list(&[x, y])
 }
 
-#[defun(user_ptr(direct), name = Add)]
+#[defun(user_ptr(direct))]
 fn add<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Vector2d> {
     let a: &Vector2d = a.into_rust(env)?;
     let b: &Vector2d = b.into_rust(env)?;
@@ -48,7 +48,7 @@ fn add<'e>(env: &'e Env, a: Value<'e>, b: Value<'e>) -> Result<Vector2d> {
     Ok(Vector2d { x, y })
 }
 
-#[defun(name = ScaleMutably)]
+#[defun]
 fn scale_mutably<'e>(env: &'e Env, times: i64, mut v: Value<'e>) -> Result<()> {
     let v = unsafe { v.get_mut::<Vector2d>(env)? };
     v.x *= times;

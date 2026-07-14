@@ -23,17 +23,17 @@ use rem::{defun, Env, Result, Value};
 fn init(env: &Env) -> Result<()> {
     type Map = HashMap<String, String>;
 
-    #[defun(user_ptr, name = Make)]
+    #[defun(user_ptr)]
     fn make() -> Result<Map> {
         Ok(Map::new())
     }
 
-    #[defun(name = Get)]
+    #[defun]
     fn get(map: &Map, key: String) -> Result<Option<&String>> {
         Ok(map.get(&key))
     }
 
-    #[defun(name = Set)]
+    #[defun]
     fn set(map: &mut Map, key: String, value: String) -> Result<Option<String>> {
         Ok(map.insert(key,value))
     }

@@ -1,6 +1,6 @@
 use crate::*;
 
-#[defun(name = List)]
+#[defun]
 fn list(env: &Env, n: u16) -> Result<Value> {
     let x = "x";
     let y = 1;

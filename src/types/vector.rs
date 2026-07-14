@@ -12,12 +12,12 @@ use crate::{subr, call::IntoLispArgs};
 /// ```
 /// use rem::{defun, Value, Vector, Result};
 ///
-/// #[defun(name = MustPassVector)]
+/// #[defun]
 /// fn must_pass_vector(vector: Vector) -> Result<Vector> {
 ///     Ok(vector)
 /// }
 ///
-/// #[defun(name = NoTypeCheck)]
+/// #[defun]
 /// fn no_type_check(value: Value) -> Result<Vector> {
 ///     Ok(Vector::from_value_unchecked(value, 0))
 /// }

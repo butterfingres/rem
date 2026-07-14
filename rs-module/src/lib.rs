@@ -31,7 +31,7 @@ fn init(env: &Env) -> Result<Value<'_>> {
 /// Helper function that enables live-reloading of Emacs's dynamic module. To be reloadable, the
 /// module be loaded by this function (`rs-module/load` in ELisp) instead of Emacs'
 /// `module-load`. (Re)loading is achieved by calling `(rs-module/load "/path/to/module")`.
-#[defun(name = Load)]
+#[defun]
 fn load(env: &Env, path: String) -> Result<Value<'_>> {
     let mut libraries = LIBRARIES.lock().expect("Failed to acquire lock for module map");
     // TODO: How about tracking by feature name?

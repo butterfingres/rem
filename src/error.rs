@@ -51,17 +51,17 @@ pub enum ErrorKind {
     /// ```
     /// # use rem::*;
     /// # use std::cell::RefCell;
-    /// #[defun(name = Wrap)]
+    /// #[defun]
     /// fn wrap(x: i64) -> Result<RefCell<i64>> {
     ///     Ok(RefCell::new(x))
     /// }
     ///
-    /// #[defun(name = WrapF)]
+    /// #[defun]
     /// fn wrap_f(x: f64) -> Result<RefCell<f64>> {
     ///     Ok(RefCell::new(x))
     /// }
     ///
-    /// #[defun(name = Unwrap)]
+    /// #[defun]
     /// fn unwrap(r: &RefCell<i64>) -> Result<i64> {
     ///     Ok(*r.try_borrow()?)
     /// }
