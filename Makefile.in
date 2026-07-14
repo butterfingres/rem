@@ -4,11 +4,7 @@ EMACS = env PROJECT_ROOT="$$(realpath .)" MODULE_DIR="@CARGO_OUTPUT_DIR@" EMACS_
 EMACSFLAGS = @EMACSFLAGS@ -Q -batch -L lisp -L @CARGO_OUTPUT_DIR@
 CARGO = env RUSTFLAGS="@RUSTFLAGS@" @CARGO@
 
-DOC = doc/calling-lisp.html doc/summary.html
-
 all:
-
-doc: ${DOC}
 
 check: @CARGO_OUTPUT_DIR@/rs-module.@SO_SUFFIX@					\
 	@CARGO_OUTPUT_DIR@/test-module.@SO_SUFFIX@					\
@@ -47,9 +43,6 @@ check: @CARGO_OUTPUT_DIR@/rs-module.@SO_SUFFIX@					\
 .el.elc:
 	${EMACS} ${EMACSFLAGS} -l bytecomp -f batch-byte-compile $<
 
-.org.html:
-	${EMACS} ${EMACSFLAGS} $< -l ox-html -f org-html-export-to-html --kill
-
-.SUFFIXES: .el .elc .org .html
+.SUFFIXES: .el .elc
 
 .PHONY: all check
