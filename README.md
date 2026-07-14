@@ -28,16 +28,13 @@ fn say_hello(env: &Env, name: String) -> Result<Value<'_>> {
 ```
 
 ## Development
+###  Building
+```shell
+cargo check
+```
 
-- Building:
-    ```shell
-    cargo xtask build
-    ```
-- Testing:
-    ```shell
-    cargo xtask test
-    ```
-- Continuous testing (requires `cargo-watch`):
-    ```shell
-    cargo xtask test --watch
-    ```
+###  Testing:
+```shell
+./configure
+make check
+```
