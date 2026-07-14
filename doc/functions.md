@@ -16,8 +16,8 @@ Each parameter must be one of the following:
 - A shared/mutable reference. This gives access to data structures that other module functions have created and embedded in the Lisp runtime (through `user-ptr` objects).
     ```rust
     #[rem::defun]
-    fn stash_pop(repo: &mut git2::Repository) -> rem::Result<()> {
-        repo.stash_pop(0, None)?;
+    fn vec_pop(vec: &mut Vec<u8>) -> rem::Result<()> {
+        vec.pop();
         Ok(())
     }
     ```
@@ -51,22 +51,18 @@ The return type must be `Result<T>`, where `T` is one of the following:
 - A type that implements `IntoLisp`. This is for simple data types that have an equivalent in Lisp.
   ```rust
   # use rem::{defun, Result};
-  /// Return the path to the .git dir.
-  /// Return `nil' if the given path is not in a repo,
-  /// or if the .git path is not valid utf-8.
   #[defun]
-  fn dot_git_path(path: String) -> Result<Option<String>> {
-      Ok(git2::Repository::discover(&path).ok().and_then(|repo| {
-          repo.path().to_str().map(|s| s.to_owned())
-      }))
+  fn dot_git_path(_path: String) -> Result<Option<String>> {
+      unimplemented!()
   }
   ```
 - An arbitrary type. This allows embedding a native data structure in a `user-ptr` object, for read-write use cases. It requires `user_ptr` option to be specified. If the data is to be shared with background Rust threads, `user_ptr(rwlock)` or `user_ptr(mutex)` must be used instead.
   ```rust
   # use rem::{defun, Result};
+  struct Foo;
   #[defun(user_ptr)]
-  fn repo(path: String) -> Result<git2::Repository> {
-      Ok(git2::Repository::discover(&path)?)
+  fn make_foo() -> Result<Foo> {
+      Ok(Foo)
   }
   ```
 - A type that implements `Transfer`. This allows embedding a native data structure in a `user-ptr` object, for read-only use cases. It requires `user_ptr(direct)` option to be specified.

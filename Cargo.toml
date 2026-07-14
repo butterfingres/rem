@@ -49,7 +49,3 @@ members = [
     "test-module-28",
     "rs-module",
 ]
-
-[dev-dependencies]
-git2 = "0.21.0"
-rental = "0.5.6"
