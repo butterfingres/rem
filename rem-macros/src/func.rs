@@ -183,11 +183,23 @@ impl LispFunc {
             let ident = inner.to_string();
 
             let mut buf = String::with_capacity(ident.len());
+            let mut next_upper = true;
             for ch in ident.chars() {
-                buf.push(match ch {
-                    '_' => '-',
-                    _ => ch,
-                });
+                match ch {
+                    '_' => {
+                        next_upper = true;
+                    }
+                    _ => {
+                        if next_upper {
+                            for ch in ch.to_uppercase() {
+                                buf.push(ch);
+                            }
+                            next_upper = false;
+                        } else {
+                            buf.push(ch);
+                        }
+                    }
+                }
             }
             Ident::new(&buf, inner.span())
         });

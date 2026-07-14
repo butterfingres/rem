@@ -3,15 +3,22 @@
 Frequently-used Lisp functions are exposed as methods on `env`:
 
 ```rust
-env.intern("defun")?;
+use rem::IntoLisp;
 
-env.message("Hello")?;
+#[rem::defun]
+fn foo(env: &rem::Env) -> rem::Result<()> {
+    env.intern("defun")?;
 
-env.type_of(5.into_lisp(env)?)?;
+    env.message("Hello")?;
 
-env.provide("my-module")?;
+    env.type_of(5_i32.into_lisp(env)?)?;
 
-env.list((1, "str", true))?;
+    env.provide("my-module")?;
+
+    env.list((1, "str", true))?;
+
+    Ok(())
+}
 ```
 
 To call arbitrary Lisp functions, use `env.call(func, args)`.
@@ -33,32 +40,29 @@ fn foo(env: &Env) -> Result<()> {
 ```
 
 ```rust
-let list = env.intern("list")?;
-// (symbol-function 'list)
-let subr = env.call("symbol-function", [list])?;
-// (funcall 'list "str" 2)
-env.call(list, ("str", 2))?;
-// (funcall (symbol-function 'list) "str" 2)
-env.call(subr, ("str", 2))?;
-subr.call(("str", 2))?; // Like the above, but shorter.
+#[rem::defun]
+fn foo(env: &rem::Env) -> rem::Result<()> {
+    let list = env.intern("list")?;
+    // (symbol-function 'list)
+    let subr = env.call("symbol-function", [list])?;
+    // (funcall 'list "str" 2)
+    env.call(list, ("str", 2))?;
+    // (funcall (symbol-function 'list) "str" 2)
+    env.call(subr, ("str", 2))?;
+    subr.call(env, ("str", 2))?; // Like the above, but shorter.
+    Ok(())
+}
 ```
 
 ```rust
 // (add-hook 'text-mode-hook 'variable-pitch-mode)
-env.call("add-hook", [
-    env.intern("text-mode-hook")?,
-    env.intern("variable-pitch-mode")?,
-])?;
-```
-
-```rust
-#[defun]
-fn listify_vec(vector: Vector) -> Result<Value> {
-    let mut args = vec![];
-    for e in vector {
-        args.push(e)
-    }
-    vector.0.env.call("list", &args)
+#[rem::defun]
+fn foo(env: &rem::Env) -> rem::Result<()> {
+    env.call("add-hook", [
+        env.intern("text-mode-hook")?,
+        env.intern("variable-pitch-mode")?,
+    ])?;
+    Ok(())
 }
 ```
 
@@ -74,16 +78,18 @@ Every call to `env.intern` and every symbol-lookup in `env.call("name", ...)` do
 use rem::{defun, use_symbols, Result, Value};
 
 use_symbols! {
-    left right center
+    LEFT => "left",
+    RIGHT => "right",
+    CENTER => "center",
 }
 
-#[defun(mod_in_name = false)]
-fn classify(pos: Value<'_>) -> Result<String> {
-    if pos == *left {
+#[defun]
+fn classify(env: &rem::Env, pos: Value<'_>) -> Result<String> {
+    if pos.eq(env, LEFT.try_bind(env)?) {
         Ok("left".to_owned())
-    } else if pos == *right {
+    } else if pos.eq(env, RIGHT.try_bind(env)?) {
         Ok("right".to_owned())
-    } else if pos == *center {
+    } else if pos.eq(env, CENTER.try_bind(env)?) {
         Ok("center".to_owned())
     } else {
         Ok("unknown".to_owned())
@@ -112,13 +118,13 @@ use rem::{defun, use_functions, Env, Result, Value};
 
 use_functions! {
     MESSAGE => "message",
-    STRING_TO_NUMBER => "string-to-number"
+    STRING_TO_NUMBER => "string-to-number",
 }
 
 #[defun(name = GreetParsed)]
 fn greet_parsed(env: &Env, s: String) -> Result<()> {
-    let n: i64 = env.call(string_to_number, (s,))?.into_rust()?;
-    env.call(message, (format!("Got {}", n),))?;
+    let n: i64 = env.call(&STRING_TO_NUMBER, (s,))?.into_rust(env)?;
+    env.call(&MESSAGE, (format!("Got {}", n),))?;
     Ok(())
 }
 ```

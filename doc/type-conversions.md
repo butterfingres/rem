@@ -23,15 +23,22 @@ It's better to declare input types for `#[defun]` than calling `.into_rust()`, u
 This is enabled for types that implement `IntoLisp`. Most built-in types are supported. Note that conversion may fail, so the return type is `Result<Value<'_>>`.
 
 ```rust
-"abc".into_lisp(env)?;
-"a\0bc".into_lisp(env)?; // NulError (Lisp string cannot contain null byte)
+use rem::IntoLisp;
 
-5.into_lisp(env)?;
-65.3.into_lisp(env)?;
+#[rem::defun]
+fn foo(_: &rem::Env) -> rem::Result<()> {
+    "abc".into_lisp(env)?;
+    "a\0bc".into_lisp(env)?; // NulError (Lisp string cannot contain null byte)
 
-().into_lisp(env)?; // nil
-true.into_lisp(env)?; // t
-false.into_lisp(env)?; // nil
+    5.into_lisp(env)?;
+    65.3.into_lisp(env)?;
+
+    ().into_lisp(env)?; // nil
+    true.into_lisp(env)?; // t
+    false.into_lisp(env)?; // nil
+
+    Ok(())
+}
 ```
 
 It's better to declare return type for `#[defun]` than calling `.into_lisp(env)`, whenever possible.

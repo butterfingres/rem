@@ -91,13 +91,13 @@ pub struct Node<'t> {
 
 impl Tree {
     pub fn root_node(&self) -> Node<'_> {
-        ...
+        unimplemented!()
     }
 }
 
 impl<'t> Node<'t> {
     pub fn child(&self) -> Node<'t> {
-        ...
+        unimplemented!()
     }
 }
 ```
@@ -110,6 +110,24 @@ extern crate rental;
 
 use std::{rc::Rc, marker::PhantomData};
 use rem::{defun, Result};
+
+# pub struct Tree;
+#
+# pub struct Node<'t> {
+#     pub tree: &'t Tree,
+# }
+#
+# impl Tree {
+#     pub fn root_node(&self) -> Node<'_> {
+#         unimplemented!()
+#     }
+# }
+#
+# impl<'t> Node<'t> {
+#     pub fn child(&self) -> Node<'t> {
+#         unimplemented!()
+#     }
+# }
 
 // PhantomData is need because map_suffix requires a type parameter.
 // See https://github.com/jpernst/rental/issues/35.
@@ -137,13 +155,13 @@ rental! {
 
 type RentingNode = inner::RentingNode<()>;
 
-#[defun(user_ptr, name = RootNode)]
+#[defun(user_ptr)]
 fn root_node(tree: Value) -> Result<RentingNode> {
     let rc: &Rc<Tree> = tree.into_rust()?;
     Ok(RentingNode::new(rc.clone(), |tree| tree.root_node()))
 }
 
-#[defun(user_ptr, name = Child)]
+#[defun(user_ptr)]
 fn child(node: &RentingNode) -> Result<RentingNode> {
     node.map(|n| n.child())
 }
