@@ -80,10 +80,8 @@ impl Env {
         unsafe_raw_call_no_exit!(self, is_not_nil, value.raw)
     }
 
-    #[deprecated(since = "0.10.0", note = "Please use `==` instead")]
     pub fn eq<'e>(&'e self, a: Value<'e>, b: Value<'e>) -> bool {
-        // Safety: value is lifetime-constrained by this env.
-        unsafe_raw_call_no_exit!(self, eq, a.raw, b.raw)
+        a.eq(self, b)
     }
 
     pub fn cons<'e, A, B>(&'e self, car: A, cdr: B) -> Result<Value<'_>>

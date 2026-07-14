@@ -13,13 +13,16 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 When calling a Lisp function, it's usually a good idea to propagate signaled errors with the `?` operator, letting higher level (Lisp) code handle them. If you want to handle a specific error, you can use `error.downcast_ref`:
 
 ```rust
-match env.call("insert", &[some_text]) {
+# use rem::{Env, ErrorKind, Result};
+# fn foo(env: &Env) -> Result<()> {
+#     let some_text = "";
+match env.call("insert", (some_text,)) {
     Err(error) => {
         // Handle `buffer-read-only` error.
-        if let Some(Signal { symbol, .. }) = error.downcast_ref::<ErrorKind>() {
+        if let Some(ErrorKind::Signal { symbol, .. }) = error.downcast_ref::<ErrorKind>() {
             let buffer_read_only = env.intern("buffer-read-only")?;
             // `symbol` is a `TempValue` that must be converted to `Value`.
-            let symbol = unsafe { Ok(symbol.value(env)) };
+            let symbol = unsafe { symbol.value(env) };
             if env.eq(symbol, buffer_read_only) {
                 env.message("This buffer is not writable!")?;
                 return Ok(())
@@ -28,8 +31,9 @@ match env.call("insert", &[some_text]) {
         // Propagate other errors.
         Err(error)
     },
-    v => v,
+    _ => Ok(()),
 }
+# }
 ```
 
 Note the use of `unsafe` to extract the error symbol as a `Value`. The reason is that, `ErrorKind::Signal` is marked `Send+Sync`, for compatibility with `anyhow`, while `Value` is lifetime-bound by `env`. The `unsafe` contract here requires the error being handled (and its `TempValue`) to come from this `env`, not from another thread, or from a global/thread-local storage.
@@ -52,7 +56,7 @@ rem::use_symbols! {
 #[defun]
 fn signal_if_negative(env: &Env, x: i16) -> Result<()> {
     if (x < 0) {
-        return env.signal(MY_CUSTOM_ERROR, ("associated", "DATA", 7))
+        return env.signal(&MY_CUSTOM_ERROR, ("associated", "DATA", 7))
     }
     Ok(())
 }
@@ -74,10 +78,10 @@ In addition to [standard errors](https://www.gnu.org/software/emacs/manual/html_
 
   ```rust
   use std::{cell::RefCell, collections::HashMap};
-  fn get_hash_map(value: &Value) -> Result<()> {
+  fn get_hash_map(env: &rem::Env, value: &rem::Value) -> rem::Result<()> {
       // May signal if `value` holds a different type of hash map,
       // or is a `user-ptr` defined in a non-Rust module.
-      let _r: &RefCell<HashMap<String, String>> = value.into_rust()?;
+      let _r: &RefCell<HashMap<String, String>> = value.into_rust(env)?;
       Ok(())
   }
   ```

@@ -31,16 +31,18 @@ fn init(env: &Env) -> Result<()> {
 - `defun_prefix` and `separator`: Function names in Emacs are conventionally prefixed with the feature name followed by `-`. These 2 options allow a different prefix and separator to be used.
 
     ```rust
+    # use rem::{Env, Result};
     // Use `/` as the separator that goes after feature name, like some other packages.
-    #[rem::module(separator = "/")]
+    #[rem::module]
     fn init(_: &Env) -> Result<()> { Ok(()) }
     ```
 
     ```rust
+    # use rem::{Env, Result};
     // The whole package contains other Lisp files, so the module is named
     // `tree-sitter-dyn`. But we want functions to be `tree-sitter-something`,
     // not `tree-sitter-dyn-something`.
-    #[rem::module(name = "tree-sitter-dyn", defun_prefix = "tree-sitter")]
+    #[rem::module(name = "tree-sitter-dyn")]
     fn init(_: &Env) -> Result<()> { Ok(()) }
     ```
 

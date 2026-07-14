@@ -7,41 +7,36 @@ You can use the attribute macro `#[defun]` to export Rust functions to the Lisp 
 Each parameter must be one of the following:
 - An owned value of a type that implements `FromLisp`. This is for simple data types that have an equivalent in Lisp.
     ```rust
-    /// This docstring will appear in Lisp too!
-    #[defun]
-    fn inc(x: i64) -> Result<i64> {
+    /// This docstring will not appear in Lisp!
+    #[rem::defun]
+    fn inc(x: i64) -> rem::Result<i64> {
         Ok(x + 1)
     }
     ```
 - A shared/mutable reference. This gives access to data structures that other module functions have created and embedded in the Lisp runtime (through `user-ptr` objects).
     ```rust
-    #[defun]
-    fn stash_pop(repo: &mut git2::Repository) -> Result<()> {
+    #[rem::defun]
+    fn stash_pop(repo: &mut git2::Repository) -> rem::Result<()> {
         repo.stash_pop(0, None)?;
         Ok(())
     }
     ```
 - A Lisp `Value`, or one of its "sub-types" (e.g. `Vector`). This allows holding off the conversion to Rust data structures until necessary, or working with values that don't have a meaningful representation in Rust, like Lisp lambdas.
-    ```rust
-    #[defun]
-    fn maybe_call(lambda: Value) -> Result<()> {
-        if some_hidden_native_logic() {
-            lambda.call([])?;
-        }
-        Ok(())
-    }
+  ```rust
+  # fn some_hidden_native_logic() -> bool { unimplemented!() }
+  use rem::{defun, Env, Result, Value};
 
-    #[defun(user_ptr)]
-    fn to_rust_vec_string(input: Vector) -> Result<Vec<String>> {
-        let mut vec = vec![];
-        for e in input {
-            vec.push(e.into_rust()?);
-        }
-        Ok(vec)
-    }
-    ```
+  #[rem::defun]
+  fn maybe_call(env: &Env, lambda: Value) -> Result<()> {
+      if some_hidden_native_logic() {
+          lambda.call(env, [])?;
+      }
+      Ok(())
+  }
+  ```
 - An `&Env`. This enables interaction with the Lisp runtime. It does not appear in the function's Lisp signature. This is unnecessary if there is already another parameter with type `Value`, which allows accessing the runtime through `Value.env`.
     ```rust
+    # use rem::{defun, Env, Result, Value};
     // Note that the function takes an owned `String`, not a reference, which would
     // have been understood as a `user-ptr` object containing a Rust string.
     #[defun]
@@ -54,24 +49,26 @@ Each parameter must be one of the following:
 
 The return type must be `Result<T>`, where `T` is one of the following:
 - A type that implements `IntoLisp`. This is for simple data types that have an equivalent in Lisp.
-    ```rust
-    /// Return the path to the .git dir.
-    /// Return `nil' if the given path is not in a repo,
-    /// or if the .git path is not valid utf-8.
-    #[defun]
-    fn dot_git_path(path: String) -> Result<Option<String>> {
-        Ok(git2::Repository::discover(&path).ok().and_then(|repo| {
-            repo.path().to_str().map(|s| s.to_owned())
-        }))
-    }
-    ```
+  ```rust
+  # use rem::{defun, Result};
+  /// Return the path to the .git dir.
+  /// Return `nil' if the given path is not in a repo,
+  /// or if the .git path is not valid utf-8.
+  #[defun]
+  fn dot_git_path(path: String) -> Result<Option<String>> {
+      Ok(git2::Repository::discover(&path).ok().and_then(|repo| {
+          repo.path().to_str().map(|s| s.to_owned())
+      }))
+  }
+  ```
 - An arbitrary type. This allows embedding a native data structure in a `user-ptr` object, for read-write use cases. It requires `user_ptr` option to be specified. If the data is to be shared with background Rust threads, `user_ptr(rwlock)` or `user_ptr(mutex)` must be used instead.
-    ```rust
-    #[defun(user_ptr)]
-    fn repo(path: String) -> Result<git2::Repository> {
-        Ok(git2::Repository::discover(&path)?)
-    }
-    ```
+  ```rust
+  # use rem::{defun, Result};
+  #[defun(user_ptr)]
+  fn repo(path: String) -> Result<git2::Repository> {
+      Ok(git2::Repository::discover(&path)?)
+  }
+  ```
 - A type that implements `Transfer`. This allows embedding a native data structure in a `user-ptr` object, for read-only use cases. It requires `user_ptr(direct)` option to be specified.
 - `Value`, or one of its "sub-types" (e.g. `Vector`). This is mostly useful for returning an input parameter unchanged.
 
@@ -87,33 +84,41 @@ By default, the function's Lisp name has the form `<feature-prefix>[mod-prefix]<
 Examples:
 
 ```rust
-// Assuming crate's name is `native_parallelism`.
+use rem::Result;
 
-#[rem::module(separator = "/")]
-fn init(_: &Env) -> Result<()> { Ok(()) }
+// Assuming crate's name is `native_parallelism`.
+#[rem::module]
+fn init(env: &rem::Env) -> Result<()> {
+    env.lambda(&shared_state::thread::MakeThread, None)?.fset("native-parallelism/make-thread")?;
+    env.lambda(&shared_state::process::Launch, None)?.fset("native-parallelism/shared-state-process-launch")?;
+    env.lambda(&shared_state::process::Pool, None)?.fset("native-parallelism/process:pool")?;
+    Ok(())
+}
 
 mod shared_state {
-    mod thread {
+    pub mod thread {
+        use rem::{defun, Result, Value};
         // Ignore the nested mod's.
         // (native-parallelism/make-thread "name")
-        #[defun(mod_in_name = false)]
-        fn make_thread(name: String) -> Result<Value<'_>> {
-            ..
+        #[defun]
+        fn make_thread<'e>(name: String) -> Result<Value<'e>> {
+            unimplemented!()
         }
     }
 
-    mod process {
+    pub mod process {
+        use rem::{defun, Result, Value};
         // (native-parallelism/shared-state-process-launch "bckgrnd")
         #[defun]
-        fn launch(name: String) -> Result<Value<'_>> {
-            ..
+        fn launch<'e>(name: String) -> Result<Value<'e>> {
+            unimplemented!()
         }
 
         // Specify a name explicitly, since Rust identifier cannot contain `:`.
         // (native-parallelism/process:pool "http-client" 2 8)
-        #[defun(mod_in_name = false, name = "process:pool")]
-        fn pool(name: String, min: i64, max: i64) -> Result<Value<'_>> {
-            ..
+        #[defun]
+        fn pool<'e>(name: String, min: i64, max: i64) -> Result<Value<'e>> {
+            unimplemented!()
         }
     }
 }

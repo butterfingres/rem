@@ -60,23 +60,26 @@ fn init(env: &Env) -> Result<()> {
 **Notes**:
 - `Value.into_rust()` has a runtime type check, which fails with the error `'rust-wrong-type-user-ptr` if the value is a `user-ptr` object of a different type.
 - Input parameters with reference types are interpreted as `RefCell`-embedded `user-ptr` objects. For other kinds of embedding, you will have to use a `Value` parameter, and acquire the reference manually, since locking strategy (including deadlock avoidance/detection) should be module-specific.
-    ```rust
-    use {rem::{defun, Result, Value}, std::sync::RwLock};
+  ```rust
+  use {
+      rem::{defun, Env, Error, IntoLisp, Result, Value},
+      std::{collections::HashMap, sync::RwLock},
+  };
 
-    type Map = HashMap<String, String>;
+  type Map = HashMap<String, String>;
 
-    #[defun(user_ptr(rwlock))]
-    fn make() -> Result<Map> {
-        Ok(Map::new())
-    }
+  #[defun(user_ptr(rwlock))]
+  fn make() -> Result<Map> {
+      Ok(Map::new())
+  }
 
-    #[defun]
-    fn get(v: Value<'_>, key: String) -> Result<Value<'_>> {
-        let lock: &RwLock<Map> = v.into_rust()?;
-        let map = lock.try_read().map_err(|_| Error::msg("map is busy"))?;
-        map.get(&key).into_lisp(v.env)
-    }
-    ```
+  #[defun]
+  fn get<'e>(env: &'e Env, v: Value<'e>, key: String) -> Result<Value<'e>> {
+      let lock: &'e RwLock<Map> = v.into_rust(env)?;
+      let map = lock.try_read().unwrap();
+      map.get(&key).into_lisp(env)
+  }
+  ```
 
 ## Lifetime-constrained Types
 
@@ -106,7 +109,7 @@ impl<'t> Node<'t> {
 
 In this case, the lifetime can be elided by turning the static reference into a dynamic ref-counted pointer. The [rental crate](https://github.com/jpernst/rental) provides a convenient way to do this:
 
-```rust
+```rust,ignore
 #[macro_use]
 extern crate rental;
 
