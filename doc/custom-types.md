@@ -23,11 +23,25 @@ types [`RefCell`](std::cell::RefCell), [`Mutex`](std::sync::Mutex),
 [`Arc`](std::sync::Arc).
 
 To return an embedded value, a function needs to be exported with a `user_ptr` option:
-- `user_ptr`: Embedding through a `RefCell`. This is suitable for common use cases, where module functions can borrow the underlying data back for read/write. It is safe because Lisp threads are subjected to the GIL. `BorrowError`/`BorrowMutError` may be signaled at runtime, depending on how module functions call back into the Lisp runtime.
-- `user_ptr(rwlock)`, `user_ptr(mutex)`: Embedding through a `RwLock`/`Mutex`. This is suitable for sharing data between module functions (on Lisp threads, with `Env` access) and pure Rust code (on background threads, without access to an `Env`).
-- `user_ptr(direct)`: Embedding a `Transfer` value directly. This is suitable for immutable data that will only be read back (not written to) by module functions (writing requires `unsafe` access, and is discouraged).
+- `user_ptr`: Embedding through a
+  [`RefCell`](std::cell::RefCell). This is suitable for common use
+  cases, where module functions can borrow the underlying data back
+  for read/write. It is safe because Lisp threads are subjected to the
+  GIL. [`BorrowError`](std::cell::BorrowError)/[`BorrowMutError`](std::cell::BorrowMutError)
+  may be signaled at runtime, depending on how module functions call
+  back into the Lisp runtime.
+- `user_ptr(rwlock)`, `user_ptr(mutex)`: Embedding through a
+  [`RwLock`](std::sync::RwLock)/[`Mutex`](std::sync::Mutex). This is
+  suitable for sharing data between module functions (on Lisp threads,
+  with [`Env`](crate::Env) access) and pure Rust code (on background threads,
+  without access to an [`Env`](crate::Env)).
+- `user_ptr(direct)`: Embedding a [`Transfer`](crate::Transfer) value
+  directly. This is suitable for immutable data that will only be read
+  back (not written to) by module functions (writing requires `unsafe`
+  access, and is discouraged).
 
-As an example, a module that allows Emacs to use Rust's `HashMap` may look like this:
+As an example, a module that allows Emacs to use Rust's
+[`HashMap`](std::collections::HashMap) may look like this:
 
 ```rust
 use std::collections::HashMap;
@@ -72,8 +86,15 @@ fn init(env: &Env) -> Result<()> {
 ```
 
 **Notes**:
-- `Value.into_rust()` has a runtime type check, which fails with the error `'rust-wrong-type-user-ptr` if the value is a `user-ptr` object of a different type.
-- Input parameters with reference types are interpreted as `RefCell`-embedded `user-ptr` objects. For other kinds of embedding, you will have to use a `Value` parameter, and acquire the reference manually, since locking strategy (including deadlock avoidance/detection) should be module-specific.
+- [`Value::into_rust`](crate::Value::into_rust) has a runtime type
+  check, which fails with the error `'rust-wrong-type-user-ptr` if the
+  value is a `user-ptr` object of a different type.
+- Input parameters with reference types are interpreted as
+  [`RefCell`](std::cell::RefCell)-embedded `user-ptr` objects. For
+  other kinds of embedding, you will have to use a
+  [`Value`](crate::Value) parameter, and acquire the reference
+  manually, since locking strategy (including deadlock
+  avoidance/detection) should be module-specific.
   ```rust
   use {
       rem::{defun, Env, Error, IntoLisp, Result, Value},
@@ -97,7 +118,10 @@ fn init(env: &Env) -> Result<()> {
 
 ## Lifetime-constrained Types
 
-When a type is constrained by a (non-static) lifetime, its value cannot be embedded unchanged. Before embedding, the lifetime must be **soundly** elided. In other words, static ownership must be correctly given up.
+When a type is constrained by a (non-static) lifetime, its value
+cannot be embedded unchanged. Before embedding, the lifetime must be
+**soundly** elided. In other words, static ownership must be correctly
+given up.
 
 The typical example is a struct holding a reference to another struct:
 
@@ -186,4 +210,5 @@ fn child(node: &RentingNode) -> Result<RentingNode> {
 }
 ```
 
-Note that there's no `unsafe` involved directly, as the soundness proofs are already encapsulated in `rental` macros.
+Note that there's no `unsafe` involved directly, as the soundness
+proofs are already encapsulated in `rental` macros.
