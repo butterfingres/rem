@@ -14,7 +14,7 @@ Modify `Cargo.toml`:
 crate-type = ["cdylib"]
 
 [dependencies]
-emacs = "0.20"
+rem = "1.0.0"
 ```
 
 Write code in `src/lib.rs`:
@@ -28,6 +28,7 @@ rem::plugin_is_GPL_compatible!();
 // Register the initialization hook that Emacs will call when it loads the module.
 #[rem::module]
 fn init(env: &Env) -> Result<Value<'_>> {
+    env.lambda(&SayHello, None)?.fset("greeting-say-hello")?;
     env.message("Done loading!")
 }
 

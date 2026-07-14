@@ -1,11 +1,17 @@
 # Writing Functions
 
-You can use the attribute macro `#[defun]` to export Rust functions to the Lisp runtime, so that Lisp code can call them. The exporting process happens when the module is loaded, even if the definitions are inside another function that is never called, or inside a private `mod`.
+You can use the attribute macro [`#[defun]`](crate::defun) to create
+Rust functions which are accessible to the Lisp runtime, so that Lisp
+code can call them. The exporting process should be done manually at
+your [module function](crate::module) with
+[`Env::lambda`](crate::env::Lambda) and
+[`Lambda::fset`](crate::Lambda::fset).
 
 ## Input Parameters
 
 Each parameter must be one of the following:
-- An owned value of a type that implements `FromLisp`. This is for simple data types that have an equivalent in Lisp.
+- An owned value of a type that implements `FromLisp`. This is for
+  simple data types that have an equivalent in Lisp.
     ```rust
     /// This docstring will not appear in Lisp!
     #[rem::defun]
@@ -13,7 +19,9 @@ Each parameter must be one of the following:
         Ok(x + 1)
     }
     ```
-- A shared/mutable reference. This gives access to data structures that other module functions have created and embedded in the Lisp runtime (through `user-ptr` objects).
+- A shared/mutable reference. This gives access to data structures
+  that other module functions have created and embedded in the Lisp
+  runtime (through `user-ptr` objects).
     ```rust
     #[rem::defun]
     fn vec_pop(vec: &mut Vec<u8>) -> rem::Result<()> {
@@ -21,10 +29,14 @@ Each parameter must be one of the following:
         Ok(())
     }
     ```
-- A Lisp `Value`, or one of its "sub-types" (e.g. `Vector`). This allows holding off the conversion to Rust data structures until necessary, or working with values that don't have a meaningful representation in Rust, like Lisp lambdas.
+- A Lisp `Value`, or one of its "sub-types" (e.g. `Vector`). This
+  allows holding off the conversion to Rust data structures until
+  necessary, or working with values that don't have a meaningful
+  representation in Rust, like Lisp lambdas.
   ```rust
-  # fn some_hidden_native_logic() -> bool { unimplemented!() }
   use rem::{defun, Env, Result, Value};
+
+  fn some_hidden_native_logic() -> bool { unimplemented!() }
 
   #[rem::defun]
   fn maybe_call(env: &Env, lambda: Value) -> Result<()> {
@@ -34,9 +46,13 @@ Each parameter must be one of the following:
       Ok(())
   }
   ```
-- An `&Env`. This enables interaction with the Lisp runtime. It does not appear in the function's Lisp signature. This is unnecessary if there is already another parameter with type `Value`, which allows accessing the runtime through `Value.env`.
+- An `&Env`. This enables interaction with the Lisp runtime. It does
+  not appear in the function's Lisp signature. This is unnecessary if
+  there is already another parameter with type `Value`, which allows
+  accessing the runtime through `Value.env`.
     ```rust
-    # use rem::{defun, Env, Result, Value};
+    use rem::{defun, Env, Result, Value};
+
     // Note that the function takes an owned `String`, not a reference, which would
     // have been understood as a `user-ptr` object containing a Rust string.
     #[defun]
@@ -48,7 +64,8 @@ Each parameter must be one of the following:
 ## Return Value
 
 The return type must be `Result<T>`, where `T` is one of the following:
-- A type that implements `IntoLisp`. This is for simple data types that have an equivalent in Lisp.
+- A type that implements `IntoLisp`. This is for simple data types
+  that have an equivalent in Lisp.
   ```rust
   # use rem::{defun, Result};
   #[defun]
@@ -56,7 +73,11 @@ The return type must be `Result<T>`, where `T` is one of the following:
       unimplemented!()
   }
   ```
-- An arbitrary type. This allows embedding a native data structure in a `user-ptr` object, for read-write use cases. It requires `user_ptr` option to be specified. If the data is to be shared with background Rust threads, `user_ptr(rwlock)` or `user_ptr(mutex)` must be used instead.
+- An arbitrary type. This allows embedding a native data structure in
+  a `user-ptr` object, for read-write use cases. It requires
+  `user_ptr` option to be specified. If the data is to be shared with
+  background Rust threads, `user_ptr(rwlock)` or `user_ptr(mutex)`
+  must be used instead.
   ```rust
   # use rem::{defun, Result};
   struct Foo;
@@ -65,17 +86,21 @@ The return type must be `Result<T>`, where `T` is one of the following:
       Ok(Foo)
   }
   ```
-- A type that implements `Transfer`. This allows embedding a native data structure in a `user-ptr` object, for read-only use cases. It requires `user_ptr(direct)` option to be specified.
+- A type that implements `Transfer`. This allows embedding a native
+  data structure in a `user-ptr` object, for read-only use cases. It
+  requires `user_ptr(direct)` option to be specified.
 - `Value`, or one of its "sub-types" (e.g. `Vector`). This is mostly useful for returning an input parameter unchanged.
 
-See [Custom Types](./custom-types.md) for more details on embedding Rust data structures in Lisp's `user-ptr` objects.
+See [Custom Types](./custom-types.md) for more details on embedding
+Rust data structures in Lisp's `user-ptr` objects.
 
 ## Naming
 
-By default, the function's Lisp name has the form `<feature-prefix>[mod-prefix]<base-name>`.
-- `feature-prefix` is the feature name followed by `-`. This can be customized by the `name`, `defun_prefix`, and `separator` [options](./module.md#options) on `#[rem::module]`.
-- `mod-prefix` is constructed from the function's Rust `mod` path (with `_` and `::` replaced by `-`). This can be turned off crate-wide, or for individual function, using the option `mod_in_name`.
-- `base-name` is the function's Rust name (with `_` replaced by `-`). This can be overridden with the option `name`.
+By default, the structure that is created by the
+[`defun`](crate::defun) attribute is named the name of the function
+with underscores (`_`) removed and their next letter capitalized. If
+you would like to change this, you can pass in the `name` attribute
+argument to change the name of the struct.
 
 Examples:
 
@@ -96,8 +121,8 @@ mod shared_state {
         use rem::{defun, Result, Value};
         // Ignore the nested mod's.
         // (native-parallelism/make-thread "name")
-        #[defun]
-        fn make_thread<'e>(name: String) -> Result<Value<'e>> {
+        #[defun(name = MakeThread)]
+        fn make<'e>(name: String) -> Result<Value<'e>> {
             unimplemented!()
         }
     }
@@ -120,9 +145,31 @@ mod shared_state {
 }
 ```
 
+## Registration
+
+The [`defun`](crate::defun) attribute macro only creates a struct that
+implements the required traits for [`Env::lambda`](crate::Env::lambda)
+so you must register it to the lisp runtime manually.
+
+```rust
+use rem::Result;
+
+#[rem::defun]
+fn one_plus(x: i32) -> Result<i32> {
+    Ok(x + 1)
+}
+
+#[rem::module]
+fn init(env: &rem::Env) -> Result<()> {
+    env.lambda(&OnePlus, None)?.fset("my-1+")?;
+    Ok(())
+}
+```
+
 ## Documentation
 
-Documentation must be passed as a `CStr` when declaring the function.
+Documentation must be passed as a [`CStr`](std::ffi::CStr) when
+declaring the function.
 
 ```rust
 use rem::{Env, Result};
