@@ -1277,7 +1277,7 @@ Some influential environment variables:
   RUSTFLAGS   Rust compiler options
   CARGO       Cargo command
   CARGOPROFILE
-              Cargo profile [default: release]
+              Cargo profile [default: debug]
 
 Use these variables to override the choices made by 'configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2001,7 +2001,7 @@ printf '%s\n' "${RUST_TARGET_TUPLE}" >&6; }
 printf %s "checking cargo profile... " >&6; }
 if test -z "${CARGOPROFILE}"
 then :
-  CARGOPROFILE="release"
+  CARGOPROFILE="debug"
 fi
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${CARGOPROFILE}" >&5
 printf '%s\n' "${CARGOPROFILE}" >&6; }
@@ -2012,7 +2012,7 @@ printf %s "checking cargo build flags... " >&6; }
 CARGOFLAGS="--target=${RUST_TARGET_TUPLE}"
 if test "${CARGOPROFILE}" != "debug"
 then :
-  CARGOFLAGS="${CARGOBUILDFLAGS} --profile=${CARGOPROFILE}"
+  CARGOFLAGS="${CARGOFLAGS} --profile=${CARGOPROFILE}"
 fi
 { printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${CARGOFLAGS}" >&5
 printf '%s\n' "${CARGOFLAGS}" >&6; }
