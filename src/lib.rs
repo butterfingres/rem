@@ -52,6 +52,8 @@ pub mod init;
 #[doc(hidden)]
 pub mod func;
 
+pub mod guide;
+
 mod env;
 mod value;
 mod types;
