@@ -1,3 +1,5 @@
+#![doc = include_str!("../../README.md")]
+
 macro_rules! mod_doc {
     ($name:ident, $path:literal) => {
         pub mod $name {
