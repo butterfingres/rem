@@ -10,7 +10,7 @@ use rem::{defun, Env, Result, Value};
 
 rem::plugin_is_GPL_compatible!();
 
-#[emacs::module(name = "greeting")]
+#[rem::module(name = "greeting")]
 fn init(env: &Env) -> Result<()> {
     env.lambda(&SayHello, None)?.fset("greeting-say-hello")?;
     Ok(())

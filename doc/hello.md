@@ -20,13 +20,13 @@ emacs = "0.20"
 Write code in `src/lib.rs`:
 
 ```rust
-use emacs::{defun, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 
 // Emacs won't load the module without this.
-emacs::plugin_is_GPL_compatible!();
+rem::plugin_is_GPL_compatible!();
 
 // Register the initialization hook that Emacs will call when it loads the module.
-#[emacs::module]
+#[rem::module]
 fn init(env: &Env) -> Result<Value<'_>> {
     env.message("Done loading!")
 }

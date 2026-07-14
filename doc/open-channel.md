@@ -18,7 +18,7 @@ Emacs's `make-pipe-process` returns a process object backed by a pair of OS pipe
 
 ```rust
 use std::io::Write;
-use emacs::{defun, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 
 /// Send DATA to PROCESS from the calling thread.
 #[defun]

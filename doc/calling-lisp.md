@@ -71,7 +71,7 @@ Every call to `env.intern` and every symbol-lookup in `env.call("name", ...)` do
 `use_symbols!` declares `static` variables of type `&OnceGlobalRef` that hold interned symbol values. The variables are initialized once when the module is loaded.
 
 ```rust
-use emacs::{defun, use_symbols, Result, Value};
+use rem::{defun, use_symbols, Result, Value};
 
 use_symbols! {
     left right center

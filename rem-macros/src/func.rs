@@ -59,7 +59,8 @@ struct FuncOpts {
     /// How the return value should be embedded in Lisp as a `user-ptr`. `None` means no embedding.
     #[darling(default)]
     user_ptr: Option<UserPtr>,
-    name: Ident,
+    #[darling(default)]
+    name: Option<Ident>,
 }
 
 #[derive(Debug)]
@@ -178,8 +179,18 @@ impl LispFunc {
             ::rem::IntoLisp::into_lisp(output, #env)
         };
         let inner = &self.def.sig.ident;
-        // let wrapper = self.wrapper_ident();
-        let wrapper_struct = &self.opts.name;
+        let wrapper_struct = self.opts.name.clone().unwrap_or_else(|| {
+            let ident = inner.to_string();
+
+            let mut buf = String::with_capacity(ident.len());
+            for ch in ident.chars() {
+                buf.push(match ch {
+                    '_' => '-',
+                    _ => ch,
+                });
+            }
+            Ident::new(&buf, inner.span())
+        });
 
         let min = self.arities.start;
         let max = self.arities.end;

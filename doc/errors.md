@@ -45,7 +45,7 @@ The function `env.signal` allows signaling a Lisp error from Rust code. The erro
 ```rust
 // The parentheses denote parent error signals.
 // If unspecified, the parent error signal is `error`.
-emacs::define_errors! {
+rem::define_errors! {
     my_custom_error "This number should not be negative" (arith_error range_error)
 }
 

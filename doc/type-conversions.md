@@ -83,7 +83,7 @@ assert!(s1 != s2);
 `GlobalRef` and `OnceGlobalRef` implement `PartialEq<Value>` (and vice versa), so you can compare a cached global against an incoming argument without rebinding:
 
 ```rust
-use emacs::use_symbols;
+use rem::use_symbols;
 
 use_symbols! { nil }
 
