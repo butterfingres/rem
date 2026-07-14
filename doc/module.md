@@ -5,13 +5,14 @@ Each dynamic module must have an initialization function, marked by the attribut
 In addition, in order to be loadable by Emacs, the module must be declared GPL-compatible.
 
 ```rust
+use rem::{Env, Result};
+
 rem::plugin_is_GPL_compatible!();
 
 #[rem::module]
 fn init(env: &Env) -> Result<()> {
     // This is run when Emacs loads the module.
-    // More concretely, it is run after all the functions it defines are exported,
-    // but before `(provide 'feature-name)` is (automatically) called.
+    // More concretely, it is run before `(provide 'feature-name)` is (automatically) called.
     Ok(())
 }
 ```
@@ -24,7 +25,7 @@ fn init(env: &Env) -> Result<()> {
     // Putting `rs` in crate's name is discouraged so we use the function's name
     // instead. The feature will be `rs-module-helper`.
     #[rem::module(name(fn))]
-    fn rs_module_helper(_: &Env) -> Result<()> { Ok(()) }
+    fn rs_module_helper(_: &rem::Env) -> rem::Result<()> { Ok(()) }
     ```
 
 - `defun_prefix` and `separator`: Function names in Emacs are conventionally prefixed with the feature name followed by `-`. These 2 options allow a different prefix and separator to be used.

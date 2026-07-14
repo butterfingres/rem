@@ -9,11 +9,25 @@ The type `Value` represents Lisp values:
 This is enabled for types that implement `FromLisp`. Most built-in types are supported. Note that conversion may fail, so the return type is `Result<T>`.
 
 ```rust
-let i: i64 = value.into_rust()?; // error if Lisp value is not an integer
-let f: f64 = value.into_rust()?; // error if Lisp value is nil
+use rem::{Env, Result, Value};
 
-let s = value.into_rust::<String>()?;
-let s: Option<&str> = value.into_rust()?; // None if Lisp value is nil
+fn identity_i64(env: &Env, value: &Value) -> Result<i64> {
+    let i: i64 = value.into_rust(env)?; // error if Lisp value is not an integer
+    Ok(i)
+}
+fn identity_f64(env: &Env, value: &Value) -> Result<f64> {
+    let f: f64 = value.into_rust(env)?; // error if Lisp value is nil
+    Ok(f)
+}
+
+fn identity_string(env: &Env, value: &Value) -> Result<String> {
+    let s = value.into_rust::<String>(env)?;
+    Ok(s)
+}
+fn identity_optional_string(env: &Env, value: &Value) -> Result<Option<String>> {
+    let s = value.into_rust::<Option<String>>(env)?; // None if Lisp value is nil
+    Ok(s)
+}
 ```
 
 It's better to declare input types for `#[defun]` than calling `.into_rust()`, unless delayed conversion is needed.
@@ -26,7 +40,7 @@ This is enabled for types that implement `IntoLisp`. Most built-in types are sup
 use rem::IntoLisp;
 
 #[rem::defun]
-fn foo(_: &rem::Env) -> rem::Result<()> {
+fn foo(env: &rem::Env) -> rem::Result<()> {
     "abc".into_lisp(env)?;
     "a\0bc".into_lisp(env)?; // NulError (Lisp string cannot contain null byte)
 
@@ -76,27 +90,35 @@ features = ["utf-8-validation"]
 `Value` implements `PartialEq`, which maps to Lisp's `eq` (identity/pointer equality, not `equal`).
 
 ```rust
-// Two references to the same interned symbol are eq.
-let a = env.intern("hello")?;
-let b = env.intern("hello")?;
-assert!(a == b);
+use rem::{defun, Env, IntoLisp, Result};
 
-// Two separately allocated strings with the same content are not eq.
-let s1 = "hi".into_lisp(env)?;
-let s2 = "hi".into_lisp(env)?;
-assert!(s1 != s2);
+#[defun]
+fn foo(env: &Env) -> Result<()> {
+    // Two references to the same interned symbol are eq.
+    let a = env.intern("hello")?;
+    let b = env.intern("hello")?;
+    assert!(a.eq(env, b));
+
+    // Two separately allocated strings with the same content are not eq.
+    let s1 = "hi".into_lisp(env)?;
+    let s2 = "hi".into_lisp(env)?;
+    assert!(s1.eq(env, s2));
+
+    Ok(())
+}
 ```
 
 `GlobalRef` and `OnceGlobalRef` implement `PartialEq<Value>` (and vice versa), so you can compare a cached global against an incoming argument without rebinding:
 
 ```rust
-use rem::use_symbols;
+use rem::{use_symbols, Env, Result, Value};
 
-use_symbols! { nil }
+use_symbols! {
+    NIL => "nil",
+}
 
-#[defun]
-fn is_nil(v: Value<'_>) -> Result<bool> {
-    Ok(v == *nil)
+fn is_nil(env: &Env, v: Value<'_>) -> Result<bool> {
+    Ok(v.eq(env, NIL.try_bind(env)?))
 }
 ```
 
@@ -109,9 +131,15 @@ Lisp vectors are represented by the type `Vector`, which can be considered a "su
 To construct Lisp vectors, use `env.make_vector` and `env.vector`, which are efficient wrappers of Emacs's built-in subroutines `make-vector` and `vector`.
 
 ```rust
-env.make_vector(5, ())?;
+use rem::{defun, Env, Result};
 
-env.vector([1, 2, 3])?;
+fn test_vectors(env: &Env) -> Result<()> {
+    env.make_vector(5, ())?;
 
-env.vector((1, "x", true))?;
+    env.vector((1, 2, 3))?;
+
+    env.vector((1, "x", true))?;
+
+    Ok(())
+}
 ```

@@ -13,7 +13,10 @@ mod_doc!(errors, "../../doc/errors.md");
 mod_doc!(functions, "../../doc/functions.md");
 mod_doc!(hello, "../../doc/hello.md");
 mod_doc!(module, "../../doc/module.md");
-mod_doc!(open_channel, "../../doc/open-channel.md");
+#[cfg(feature = "emacs-28")]
+pub mod open_channel {
+    #![doc = include_str!("../../doc/open-channel.md")]
+}
 mod_doc!(overview, "../../doc/overview.md");
 mod_doc!(reloading, "../../doc/reloading.md");
 mod_doc!(testing, "../../doc/testing.md");

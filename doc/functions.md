@@ -121,15 +121,21 @@ mod shared_state {
 
 ## Documentation
 
-`#[defun]` converts Rust's docstring into Lisp's docstring. It also automatically constructs and appends the [function's signature](https://www.gnu.org/software/emacs/manual/html_node/elisp/Function-Documentation.html#Function-Documentation) to the end of the docstring, so that help modes can correctly display it.
+Documentation must be passed as a `CStr` when declaring the function.
 
 ```rust
-// `(fn X Y)` is automatically appended, so you don't have to manually do so.
-// In help modes, the signature will be (add X Y).
+use rem::{Env, Result};
 
-/// Add 2 numbers.
-#[defun]
+#[rem::defun]
 fn add(x: usize, y: usize) -> Result<usize> {
     Ok(x + y)
+}
+
+#[rem::module]
+fn init(env: &Env) -> Result<()> {
+    env.lambda(&Add, Some(c"Add 2 numbers.
+
+(fn X Y)"))?.fset("my-add");
+    Ok(())
 }
 ```

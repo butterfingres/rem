@@ -5,7 +5,7 @@ Emacs Lisp's [error handling mechanism](https://www.gnu.org/software/emacs/manua
 The chosen error type is the `Error` struct from [`anyhow` crate](https://github.com/dtolnay/anyhow):
 
 ```rust
-pub type Result<T> = result::Result<T, anyhow::Error>;
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 ```
 
 ## Handling Lisp Errors in Rust
@@ -43,17 +43,24 @@ This is similar to handling Lisp errors. The only difference is `ErrorKind::Thro
 The function `env.signal` allows signaling a Lisp error from Rust code. The error symbol must have been defined, e.g. by the macro `define_errors!`:
 
 ```rust
-// The parentheses denote parent error signals.
-// If unspecified, the parent error signal is `error`.
-rem::define_errors! {
-    my_custom_error "This number should not be negative" (arith_error range_error)
+use rem::{defun, Env, Result};
+
+rem::use_symbols! {
+    MY_CUSTOM_ERROR => "my-custom-error",
 }
 
 #[defun]
 fn signal_if_negative(env: &Env, x: i16) -> Result<()> {
     if (x < 0) {
-        return env.signal(my_custom_error, ("associated", "DATA", 7))
+        return env.signal(MY_CUSTOM_ERROR, ("associated", "DATA", 7))
     }
+    Ok(())
+}
+
+#[rem::module]
+fn init(env: &Env) -> Result<()> {
+    env.define_error(&MY_CUSTOM_ERROR, "This number should not be negative", (env.intern("arith-error")?, env.intern("range-error")?))?;
+    env.lambda(&SignalIfNegative, None)?.fset("signal-if-negative")?;
     Ok(())
 }
 ```
@@ -64,11 +71,16 @@ In addition to [standard errors](https://www.gnu.org/software/emacs/manual/html_
 
 - `rust-error`: The message is `Rust error`. This covers all generic Rust-originated errors.
 - `rust-wrong-type-user-ptr`: The message is `Wrong type user-ptr`. This happens when Rust code is passed a `user-ptr` of a type it's not expecting. It is a sub-type of `rust-error`.
-    ```rust
-    // May signal if `value` holds a different type of hash map,
-    // or is a `user-ptr` defined in a non-Rust module.
-    let r: &RefCell<HashMap<String, String>> = value.into_rust()?;
-    ```
+
+  ```rust
+  use std::{cell::RefCell, collections::HashMap};
+  fn get_hash_map(value: &Value) -> Result<()> {
+      // May signal if `value` holds a different type of hash map,
+      // or is a `user-ptr` defined in a non-Rust module.
+      let _r: &RefCell<HashMap<String, String>> = value.into_rust()?;
+      Ok(())
+  }
+  ```
 
 ### Panics
 

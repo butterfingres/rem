@@ -61,7 +61,9 @@ fn init(env: &Env) -> Result<()> {
 - `Value.into_rust()` has a runtime type check, which fails with the error `'rust-wrong-type-user-ptr` if the value is a `user-ptr` object of a different type.
 - Input parameters with reference types are interpreted as `RefCell`-embedded `user-ptr` objects. For other kinds of embedding, you will have to use a `Value` parameter, and acquire the reference manually, since locking strategy (including deadlock avoidance/detection) should be module-specific.
     ```rust
-    use std::sync::RwLock;
+    use {rem::{defun, Result, Value}, std::sync::RwLock};
+
+    type Map = HashMap<String, String>;
 
     #[defun(user_ptr(rwlock))]
     fn make() -> Result<Map> {
@@ -109,25 +111,25 @@ In this case, the lifetime can be elided by turning the static reference into a 
 extern crate rental;
 
 use std::{rc::Rc, marker::PhantomData};
-use rem::{defun, Result};
+use rem::{defun, Env, Result, Value};
 
-# pub struct Tree;
-#
-# pub struct Node<'t> {
-#     pub tree: &'t Tree,
-# }
-#
-# impl Tree {
-#     pub fn root_node(&self) -> Node<'_> {
-#         unimplemented!()
-#     }
-# }
-#
-# impl<'t> Node<'t> {
-#     pub fn child(&self) -> Node<'t> {
-#         unimplemented!()
-#     }
-# }
+pub struct Tree;
+
+pub struct Node<'t> {
+    pub tree: &'t Tree,
+}
+
+impl Tree {
+    pub fn root_node(&self) -> Node<'_> {
+        unimplemented!()
+    }
+}
+
+impl<'t> Node<'t> {
+    pub fn child(&self) -> Node<'t> {
+        unimplemented!()
+    }
+}
 
 // PhantomData is need because map_suffix requires a type parameter.
 // See https://github.com/jpernst/rental/issues/35.
@@ -156,14 +158,14 @@ rental! {
 type RentingNode = inner::RentingNode<()>;
 
 #[defun(user_ptr)]
-fn root_node(tree: Value) -> Result<RentingNode> {
-    let rc: &Rc<Tree> = tree.into_rust()?;
+fn root_node(env: &Env, tree: Value) -> Result<RentingNode> {
+    let rc: &Rc<Tree> = tree.into_rust(env)?;
     Ok(RentingNode::new(rc.clone(), |tree| tree.root_node()))
 }
 
 #[defun(user_ptr)]
 fn child(node: &RentingNode) -> Result<RentingNode> {
-    node.map(|n| n.child())
+    Ok(node.map(|n| n.child()))
 }
 ```
 
