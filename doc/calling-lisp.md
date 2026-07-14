@@ -23,8 +23,13 @@ To call arbitrary Lisp functions, use `env.call(func, args)`.
   + A tuple of different types, each satisfying the `IntoLisp` trait.
 
 ```rust
-// (list "str" 2)
-env.call("list", ("str", 2))?;
+use rem::{Env, Result};
+#[rem::defun(name = Foo)]
+fn foo(env: &Env) -> Result<()> {
+    // (list "str" 2)
+    env.call("list", ("str", 2))?;
+    Ok(())
+}
 ```
 
 ```rust
@@ -89,9 +94,10 @@ fn classify(pos: Value<'_>) -> Result<String> {
 The Lisp name for each symbol is derived by replacing `_` with `-`. Use `=> "lisp-name"` to override:
 
 ```rust
-use_symbols! {
-    nil t
-    buffer_read_only => "buffer-read-only"
+rem::use_symbols! {
+    NIL => "nil",
+    T => "t",
+    BUFFER_READ_ONLY => "buffer-read-only"
 }
 ```
 
@@ -102,14 +108,14 @@ If the symbol is bound to a function, you can call it via `env.call(symbol_var, 
 `use_functions!` is like `use_symbols!`, but stores the function object directly (via `indirect-function`). Calls through these variables skip symbol lookup entirely.
 
 ```rust
-use emacs::{defun, use_functions, Env, Result, Value};
+use rem::{defun, use_functions, Env, Result, Value};
 
 use_functions! {
-    message
-    string_to_number => "string-to-number"
+    MESSAGE => "message",
+    STRING_TO_NUMBER => "string-to-number"
 }
 
-#[defun]
+#[defun(name = GreetParsed)]
 fn greet_parsed(env: &Env, s: String) -> Result<()> {
     let n: i64 = env.call(string_to_number, (s,))?.into_rust()?;
     env.call(message, (format!("Got {}", n),))?;

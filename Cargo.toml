@@ -49,3 +49,6 @@ members = [
     "test-module-28",
     "rs-module",
 ]
+
+[dev-dependencies]
+rental = "0.5.6"

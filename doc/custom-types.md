@@ -17,26 +17,30 @@ As an example, a module that allows Emacs to use Rust's `HashMap` may look like 
 
 ```rust
 use std::collections::HashMap;
-use emacs::{defun, Env, Result, Value};
+use rem::{defun, Env, Result, Value};
 
-#[emacs::module(name = "rs-hash-map", separator = "/")]
+#[rem::module(name = "rs-hash-map")]
 fn init(env: &Env) -> Result<()> {
     type Map = HashMap<String, String>;
 
-    #[defun(user_ptr)]
+    #[defun(user_ptr, name = Make)]
     fn make() -> Result<Map> {
         Ok(Map::new())
     }
 
-    #[defun]
+    #[defun(name = Get)]
     fn get(map: &Map, key: String) -> Result<Option<&String>> {
         Ok(map.get(&key))
     }
 
-    #[defun]
+    #[defun(name = Set)]
     fn set(map: &mut Map, key: String, value: String) -> Result<Option<String>> {
         Ok(map.insert(key,value))
     }
+
+    env.lambda(&Make, None)?.fset("rs-hash-map-make")?;
+    env.lambda(&Get, None)?.fset("rs-hash-map-get")?;
+    env.lambda(&Set, None)?.fset("rs-hash-map-set")?;
 
     Ok(())
 }
@@ -105,7 +109,7 @@ In this case, the lifetime can be elided by turning the static reference into a 
 extern crate rental;
 
 use std::{rc::Rc, marker::PhantomData};
-use emacs::{defun, Result};
+use rem::{defun, Result};
 
 // PhantomData is need because map_suffix requires a type parameter.
 // See https://github.com/jpernst/rental/issues/35.
@@ -133,13 +137,13 @@ rental! {
 
 type RentingNode = inner::RentingNode<()>;
 
-#[defun(user_ptr)]
+#[defun(user_ptr, name = RootNode)]
 fn root_node(tree: Value) -> Result<RentingNode> {
     let rc: &Rc<Tree> = tree.into_rust()?;
     Ok(RentingNode::new(rc.clone(), |tree| tree.root_node()))
 }
 
-#[defun(user_ptr)]
+#[defun(user_ptr, name = Child)]
 fn child(node: &RentingNode) -> Result<RentingNode> {
     node.map(|n| n.child())
 }
