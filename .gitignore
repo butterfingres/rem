@@ -1,9 +1,11 @@
-target/**
+/target
 
 /Makefile
 /aclocal.m4
 /autom4te.cache/
-/config.*
+/config.log
+/config.status
+/config.el
 /depcomp
 /install-sh
 /libtool

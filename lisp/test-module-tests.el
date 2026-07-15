@@ -3,6 +3,7 @@
 (require 'subr-x)
 (require 'help)
 
+(require 'config)
 (require 'rs-module)
 (require 'test-module)
 
@@ -23,7 +24,7 @@
     (car s)))
 
 (defun t/run-in-sub-process (f-symbol)
-  (let* ((default-directory (getenv "PROJECT_ROOT"))
+  (let* ((default-directory config-project-root)
          (name (symbol-name f-symbol))
          (error-file (make-temp-file "destructive-fn"))
          (exit-code
@@ -38,9 +39,11 @@
                  nil
                  (append
                   (list "--batch"
-                        "--directory" (getenv "MODULE_DIR"))
+                        "--directory" config-module-dir)
                   (when t/support-module-assertions-p '("--module-assertions"))
-                  (list "-L" (file-name-concat default-directory "lisp")
+                  (list "-L" default-directory
+                        "-L" config-module-dir
+                        "-L" (file-name-concat default-directory "lisp")
                         "-l" "ert"
                         "-l" "test-module-tests"
                         "-f" name))))
