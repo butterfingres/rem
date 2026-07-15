@@ -4,14 +4,15 @@ You can use the attribute macro [`#[defun]`](crate::defun) to create
 Rust functions which are accessible to the Lisp runtime, so that Lisp
 code can call them. The exporting process should be done manually at
 your [module function](crate::module) with
-[`Env::lambda`](crate::env::Lambda) and
+[`Env::lambda`](crate::Lambda) and
 [`Lambda::fset`](crate::Lambda::fset).
 
 ## Input Parameters
 
 Each parameter must be one of the following:
-- An owned value of a type that implements `FromLisp`. This is for
-  simple data types that have an equivalent in Lisp.
+- An owned value of a type that implements
+  [`FromLisp`](crate::FromLisp). This is for simple data types that
+  have an equivalent in Lisp.
     ```rust
     /// This docstring will not appear in Lisp!
     #[rem::defun]
@@ -29,10 +30,11 @@ Each parameter must be one of the following:
         Ok(())
     }
     ```
-- A Lisp `Value`, or one of its "sub-types" (e.g. `Vector`). This
-  allows holding off the conversion to Rust data structures until
-  necessary, or working with values that don't have a meaningful
-  representation in Rust, like Lisp lambdas.
+- A Lisp [`Value`](crate::Value), or one of its "sub-types"
+  (e.g. [`Vector`](crate::Vector)). This allows holding off the
+  conversion to Rust data structures until necessary, or working with
+  values that don't have a meaningful representation in Rust, like
+  Lisp lambdas.
   ```rust
   use rem::{defun, Env, Result, Value};
 
@@ -46,10 +48,8 @@ Each parameter must be one of the following:
       Ok(())
   }
   ```
-- An `&Env`. This enables interaction with the Lisp runtime. It does
-  not appear in the function's Lisp signature. This is unnecessary if
-  there is already another parameter with type `Value`, which allows
-  accessing the runtime through `Value.env`.
+- An [`&Env`](crate::Env). This enables interaction with the Lisp runtime. It does
+  not appear in the function's Lisp signature.
     ```rust
     use rem::{defun, Env, Result, Value};
 
@@ -63,9 +63,9 @@ Each parameter must be one of the following:
 
 ## Return Value
 
-The return type must be `Result<T>`, where `T` is one of the following:
-- A type that implements `IntoLisp`. This is for simple data types
-  that have an equivalent in Lisp.
+The return type must be [`Result<T>`](crate::Result), where `T` is one of the following:
+- A type that implements [`IntoLisp`](crate::IntoLisp). This is for
+  simple data types that have an equivalent in Lisp.
   ```rust
   # use rem::{defun, Result};
   #[defun]
@@ -86,10 +86,13 @@ The return type must be `Result<T>`, where `T` is one of the following:
       Ok(Foo)
   }
   ```
-- A type that implements `Transfer`. This allows embedding a native
-  data structure in a `user-ptr` object, for read-only use cases. It
-  requires `user_ptr(direct)` option to be specified.
-- `Value`, or one of its "sub-types" (e.g. `Vector`). This is mostly useful for returning an input parameter unchanged.
+- A type that implements [`Transfer`](crate::Transfer). This allows
+  embedding a native data structure in a `user-ptr` object, for
+  read-only use cases. It requires `user_ptr(direct)` option to be
+  specified.
+- [`Value`](crate::Value), or one of its "sub-types"
+  (e.g. [`Vector`](crate::Vector)). This is mostly useful for
+  returning an input parameter unchanged.
 
 See [Custom Types](./custom-types.md) for more details on embedding
 Rust data structures in Lisp's `user-ptr` objects.
@@ -183,7 +186,7 @@ fn add(x: usize, y: usize) -> Result<usize> {
 fn init(env: &Env) -> Result<()> {
     env.lambda(&Add, Some(c"Add 2 numbers.
 
-(fn X Y)"))?.fset("my-add");
+(fn X Y)"))?.fset("my-add")?;
     Ok(())
 }
 ```

@@ -14,7 +14,7 @@ Modify `Cargo.toml`:
 crate-type = ["cdylib"]
 
 [dependencies]
-rem = "1.0.0"
+rem = { version = "1.0.0", git = "https://github.com/butterfingres/rem.git" }
 ```
 
 Write code in `src/lib.rs`:

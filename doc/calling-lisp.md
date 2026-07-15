@@ -80,8 +80,7 @@ lookup inside Emacs. For hot paths, cache the result with
 
 [`use_symbols!`](crate::use_symbols) declares `static` variables of
 type [`&LazyGlobalRef`](crate::LazyGlobalRef) that hold interned
-symbol values. The variables are initialized once when the module is
-loaded.
+symbol values. The variables are initialized once the values are used.
 
 ```rust
 use rem::{defun, use_symbols, Result, Value};
@@ -150,5 +149,3 @@ fn greet_parsed(env: &Env, s: String) -> Result<()> {
   need to respect runtime rebinding; use
   [`use_functions!`](crate::use_functions) for built-in and primitive
   functions where rebinding is not expected.
-
-Both macros can be used only once per Rust `mod`. To cover multiple `mod`s, place one invocation in each.

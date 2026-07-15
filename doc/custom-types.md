@@ -66,9 +66,9 @@ fn init(env: &Env) -> Result<()> {
         Ok(map.insert(key,value))
     }
 
-    env.lambda(&Make, None)?.fset("rs-hash-map-make")?;
-    env.lambda(&Get, None)?.fset("rs-hash-map-get")?;
-    env.lambda(&Set, None)?.fset("rs-hash-map-set")?;
+    env.lambda(&Make, None)?.fset("rs-hash-map/make")?;
+    env.lambda(&Get, None)?.fset("rs-hash-map/get")?;
+    env.lambda(&Set, None)?.fset("rs-hash-map/set")?;
 
     Ok(())
 }
