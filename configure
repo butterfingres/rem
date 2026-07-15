@@ -592,7 +592,7 @@ PACKAGE_URL=''
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
-SRCDIR
+abs_top_srcdir
 SO_SUFFIX
 TEST_MODULE_28
 TEST_MODULE
@@ -2058,11 +2058,6 @@ SO_SUFFIX="${RS_MODULE#*.}"
 printf '%s\n' "${SO_SUFFIX}" >&6; }
 
 
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: checking source directory" >&5
-printf %s "checking source directory... " >&6; }
-SRCDIR="$(realpath "./${srcdir}")"
-{ printf '%s\n' "$as_me:${as_lineno-$LINENO}: result: ${SRCDIR}" >&5
-printf '%s\n' "${SRCDIR}" >&6; }
 
 
 ac_config_files="$ac_config_files Makefile config.el"

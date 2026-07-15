@@ -46,10 +46,7 @@ SO_SUFFIX="${RS_MODULE#*.}"
 AC_MSG_RESULT([${SO_SUFFIX}])
 AC_SUBST([SO_SUFFIX])
 
-AC_MSG_CHECKING([source directory])
-SRCDIR="$(realpath "./${srcdir}")"
-AC_MSG_RESULT([${SRCDIR}])
-AC_SUBST([SRCDIR])
+AC_SUBST([abs_top_srcdir])
 
 AC_CONFIG_FILES([Makefile config.el])
 AC_OUTPUT
