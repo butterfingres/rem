@@ -1,6 +1,6 @@
 [package]
 name = "rem"
-version = "0.21.0"
+version = "1.0.0"
 edition = "2024"
 description = "Rust library for creating Emacs's dynamic modules"
 repository = "https://github.com/ubolonton/emacs-module-rs"

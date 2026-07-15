@@ -253,7 +253,7 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "rem"
-version = "0.21.0"
+version = "1.0.0"
 dependencies = [
  "emacs_module",
  "libc",
@@ -272,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "rs-module"
-version = "0.21.0"
+version = "1.0.0"
 dependencies = [
  "libloading 0.9.0",
  "rem",
