@@ -14,12 +14,6 @@ license = "BSD-3-Clause"
 readme = "README.md"
 keywords = ["emacs", "emacs-module", "ffi"]
 categories = ["api-bindings", "development-tools::ffi"]
-include = [
-    "Cargo.toml",
-    ".rustfmt.toml",
-    "CHANGELOG.md",
-    "README.md",
-]
 rust-version = "1.87"
 resolver = "3"
 
