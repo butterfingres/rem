@@ -209,10 +209,11 @@ impl LispFunc {
 
         quote! {
             pub struct #wrapper_struct;
-            impl<'e> ::rem::func::LispFn<'e> for #wrapper_struct {
+            impl ::rem::func::LispFnArity for #wrapper_struct {
                 const MIN_ARITY: ::std::primitive::usize = #min;
                 const MAX_ARITY: ::std::option::Option<::std::primitive::usize> = ::std::option::Option::Some(#max);
-
+            }
+            impl<'e> ::rem::func::LispFn<'e> for #wrapper_struct {
                 fn call(&self, #env: &'e ::rem::Env, #vals: &[::rem::Value<'e>]) -> rem::Result<rem::Value<'e>> {
                     #bindings
                     let output = #inner(#args)?;

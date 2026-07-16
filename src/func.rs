@@ -25,10 +25,11 @@ where
     }))
 }
 
-pub trait LispFn<'e> {
+pub trait LispFnArity {
     const MIN_ARITY: usize;
     const MAX_ARITY: Option<usize>;
-
+}
+pub trait LispFn<'e> {
     fn call(&self, _: &'e Env, args: &[Value<'e>]) -> Result<Value<'e>>;
 }
 #[doc(hidden)]
@@ -39,17 +40,27 @@ pub unsafe extern "C" fn extern_lambda<F>(
     data: *mut c_void,
 ) -> emacs_value
 where
-    F: for<'e> LispFn<'e>,
+    F: for<'e> LispFn<'e> + panic::RefUnwindSafe,
 {
-    let env = unsafe { Env::new(env) };
-    handle_call(&env, |env| {
-        let len = usize::try_from(nargs).unwrap_or_default();
-        let args = if len == 0 { &[] } else { unsafe { slice::from_raw_parts(args.cast(), len) } };
+    unsafe fn inner(
+        env: *mut emacs_env,
+        nargs: isize,
+        args: *mut emacs_value,
+        f: &(dyn for<'e> LispFn<'e> + panic::RefUnwindSafe),
+    ) -> emacs_value {
+        let env = unsafe { Env::new(env) };
+        handle_call(&env, |env| {
+            let len = usize::try_from(nargs).unwrap_or_default();
+            let args =
+                if len == 0 { &[] } else { unsafe { slice::from_raw_parts(args.cast(), len) } };
 
-        let f = data.cast::<F>();
-        let f = unsafe { f.as_ref() }.unwrap();
-        f.call(env, args)
-    })
+            f.call(env, args)
+        })
+    }
+
+    let f = data.cast::<F>();
+    let f = unsafe { f.as_ref() }.unwrap();
+    unsafe { inner(env, nargs, args, f) }
 }
 
 pub struct Lambda<'e> {
@@ -75,7 +86,7 @@ impl Env {
         docstring: Option<&'static CStr>,
     ) -> Result<Lambda<'e>>
     where
-        F: for<'env> LispFn<'env>,
+        F: for<'env> LispFn<'env> + LispFnArity + panic::RefUnwindSafe,
     {
         unsafe_raw_call_value!(
             self,
