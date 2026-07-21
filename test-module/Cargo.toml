@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 rem = { path = ".." }
 
 [dev-dependencies]
-rs-module = { path = "../rs-module" }
+test-cdylib = { version = "1.1.0", default-features = false }
 
 [features]
 bindgen = ["rem/bindgen"]

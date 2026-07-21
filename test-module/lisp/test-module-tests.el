@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t; -*-
 
+(require 'ert)
 (require 'subr-x)
 (require 'help)
 

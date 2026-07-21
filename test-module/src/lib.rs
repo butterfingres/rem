@@ -14,6 +14,8 @@ mod error;
 mod hash_map;
 mod lifetime;
 mod ref_cell;
+#[cfg(test)]
+mod tests;
 mod vector;
 mod vector_2d;
 
