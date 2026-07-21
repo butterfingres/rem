@@ -20,19 +20,20 @@ lisp/test-module-28-tests.elc: @CARGO_OUTPUT_DIR@/test-module-28.@SO_SUFFIX@
 @CARGO_OUTPUT_DIR@/test-module-28.@SO_SUFFIX@: @CARGO_OUTPUT_DIR@/@TEST_MODULE_28@
 	cp $< $@
 
-# find test-module -name '*.rs' -o -name '*.toml'
+# find test-module -name '*.rs' -o -name '*.toml' | sort | xargs echo
 @CARGO_OUTPUT_DIR@/@TEST_MODULE@: test-module/Cargo.toml	\
-	test-module/src/basics.rs test-module/src/error.rs		\
-	test-module/src/call.rs test-module/src/vector_2d.rs	\
+	test-module/src/basics.rs test-module/src/call.rs		\
+	test-module/src/eq.rs test-module/src/error.rs			\
+	test-module/src/hash_map.rs test-module/src/lib.rs		\
 	test-module/src/lifetime.rs test-module/src/macros.rs	\
-	test-module/src/eq.rs test-module/src/hash_map.rs		\
-	test-module/src/vector.rs test-module/src/lib.rs		\
-	test-module/src/ref_cell.rs
+	test-module/src/ref_cell.rs test-module/src/vector.rs	\
+	test-module/src/vector_2d.rs
+
 	${CARGO} build --manifest-path=$< ${CARGOFLAGS}
 
-# find test-module-28 -name '*.rs' -o -name '*.toml'
+# find test-module-28 -name '*.rs' -o -name '*.toml' | sort | xargs echo
 @CARGO_OUTPUT_DIR@/@TEST_MODULE_28@: test-module-28/Cargo.toml		\
-	test-module-28/src/test_channel.rs test-module-28/src/lib.rs
+	test-module-28/src/lib.rs test-module-28/src/test_channel.rs
 	${CARGO} build --manifest-path=$< ${CARGOFLAGS}
 
 .el.elc:
