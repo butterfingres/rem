@@ -35,6 +35,5 @@ cargo check
 
 ###  Testing:
 ```shell
-./configure
-make check
+cargo test --workspace
 ```
