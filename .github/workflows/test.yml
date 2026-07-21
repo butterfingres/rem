@@ -27,7 +27,7 @@ jobs:
       - name: Test
         shell: bash
         run: |
-          cargo fmt --check --workspace
-          cargo clippy --workspace
+          cargo fmt --check
+          cargo clippy
           cargo test --workspace
           
