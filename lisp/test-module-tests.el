@@ -4,7 +4,6 @@
 (require 'help)
 
 (require 'config)
-(require 'rs-module)
 (require 'test-module)
 
 ;;; ----------------------------------------------------------------------------
