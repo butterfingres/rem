@@ -48,5 +48,5 @@ AC_SUBST([SO_SUFFIX])
 
 AC_SUBST([abs_top_srcdir])
 
-AC_CONFIG_FILES([Makefile config.el])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

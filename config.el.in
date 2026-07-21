@@ -1,7 +1,0 @@
-;; -*- lexical-binding: t; -*-
-
-(defconst config-emacs "@EMACS@")
-(defconst config-project-root "@abs_top_srcdir@")
-(defconst config-module-dir (expand-file-name "@CARGO_OUTPUT_DIR@" config-project-root))
-
-(provide 'config)

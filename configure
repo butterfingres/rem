@@ -2060,7 +2060,7 @@ printf '%s\n' "${SO_SUFFIX}" >&6; }
 
 
 
-ac_config_files="$ac_config_files Makefile config.el"
+ac_config_files="$ac_config_files Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -2716,7 +2716,6 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "config.el") CONFIG_FILES="$CONFIG_FILES config.el" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac

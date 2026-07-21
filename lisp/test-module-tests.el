@@ -3,7 +3,6 @@
 (require 'subr-x)
 (require 'help)
 
-(require 'config)
 (require 'test-module)
 
 ;;; ----------------------------------------------------------------------------
@@ -21,39 +20,6 @@
   (let* ((docstring (documentation sym))
          (s (help-split-fundoc docstring sym)))
     (car s)))
-
-(defun t/run-in-sub-process (f-symbol)
-  (let* ((default-directory config-project-root)
-         (name (symbol-name f-symbol))
-         (error-file (make-temp-file "destructive-fn"))
-         (exit-code
-          (apply #'call-process
-                 ;; program
-                 (or (getenv "EMACS") "emacs")
-                 ;; infile
-                 nil
-                 ;; destination
-                 `(:file ,error-file)
-                 ;; display
-                 nil
-                 (append
-                  (list "--batch"
-                        "--directory" config-module-dir)
-                  (when t/support-module-assertions-p '("--module-assertions"))
-                  (list "-L" default-directory
-                        "-L" config-module-dir
-                        "-L" (file-name-concat default-directory "lisp")
-                        "-l" "ert"
-                        "-l" "test-module-tests"
-                        "-f" name))))
-         (error-string
-          (with-temp-buffer
-            (insert-file-contents error-file)
-            (string-trim-right
-             (buffer-substring-no-properties (point-min) (point-max))))))
-    (if (= exit-code 0)
-        (delete-file error-file)
-      (error "File: %s error-file. Exit code: %s. Error: %s" error-file exit-code error-string))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; Type conversion.
@@ -353,7 +319,7 @@
   `(ert-deftest ,(intern (if prefix
                              (format "%s::%s" prefix name)
                            (format "%s" name))) ()
-     (t/run-in-sub-process (intern ,(format "t/%s" name)))))
+     (,(intern (format "t/%s" name)))))
 
 ;;; TODO: The way this test is called is a bit convoluted.
 (defun t/gc-after-catching ()
@@ -385,7 +351,7 @@
     (ert-skip "Workaround for the GC bug 31238 was already disabled"))
   (should (string-match-p
            "Emacs value not found in"
-           (cadr (t/get-error (t/run-in-sub-process 't/free-global-ref-after-normal-return))))))
+           (cadr (t/get-error (t/free-global-ref-after-normal-return))))))
 
 (ert-deftest global-ref::free-after-error ()
   (unless t/support-module-assertions-p
@@ -394,4 +360,4 @@
     (ert-skip "Workaround for the GC bug 31238 was already disabled"))
   (should (string-match-p
            "Emacs value not found in"
-           (cadr (t/get-error (t/run-in-sub-process 't/free-global-ref-after-error))))))
+           (cadr (t/get-error (t/free-global-ref-after-error))))))
